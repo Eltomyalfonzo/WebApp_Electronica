@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MQTT - Magnitud, Fase y Nyquist</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Poppins', sans-serif; margin:0; padding:0; }
+    .navbar {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background-color:#003366;
+      color:white;
+      padding:10px 20px;
+    }
+    .navbar button {
+      background-color:#007BFF;
+      color:white;
+      border:none;
+      padding:8px 15px;
+      border-radius:5px;
+      cursor:pointer;
+      font-size:14px;
+    }
+    .navbar button:hover { background-color:#0056b3; }
+
+    .container { display:flex; gap:20px; padding:20px; }
+    .charts-left { flex:1; }
+    .charts-right { flex:1; display:flex; flex-direction:column; align-items:center; }
+    canvas { width: 400px; height: 300px; display:block; margin-bottom:15px; }
+    form { margin:20px; display:flex; justify-content:center; }
+    input { padding:5px; margin-right:10px; }
+    img { max-width:200px; margin-bottom:20px; display:block; margin-left:auto; margin-right:auto; }
+    pre { background:#f0f0f0; padding:10px; }
+  </style>
+</head>
+<body>
+
+<div class="navbar">
+  <span>MQTT - Respuesta en Frecuencia - UTN - Facultad Regional San Fransisco</span>
+  <button onclick="downloadAllCharts()">Descargar Todos</button>
+</div>
+
+
+<div class="container">
+  <div class="charts-left">
+
+    <canvas id="chartMag"></canvas>
+
+    <canvas id="chartPhase"></canvas>
+  </div>
+
+  <div class="charts-right">
+    <canvas id="chartNyquist"></canvas>
+  </div>
+</div>
+
+<form onsubmit="sendData(event)">
+  <input id="inputData" placeholder="-10;1000A o 1.57;1000F">
+  <button>Enviar</button>
+</form>
+
+<pre id="log"></pre>
+
+<script>
+const client = mqtt.connect("ws://localhost:9001");
+client.on("connect", () => client.subscribe("test/topic"));
+client.on("message", (_, m) => parsePlot(m.toString()));
+
+function sendData(e){
+  e.preventDefault();
+  let v = document.getElementById("inputData").value;
+  if(v){
+    client.publish("test/topic", v);
+    document.getElementById("inputData").value = "";
+  }
+}
+function log(msg){ document.getElementById("log").textContent += msg + "\n"; }
+
+Chart.defaults.font.family = 'Poppins';
+Chart.defaults.font.size = 14;
+
+const chartMag = new Chart(document.getElementById('chartMag'), {
+  type:'line',
+  data:{labels:[], datasets:[{label:'Magnitud [dB]', data:[], borderColor:'blue', backgroundColor:'rgba(0,0,255,0.1)', fill:true}]},
+  options:{
+    responsive:false,
+    scales:{
+      x:{type:'logarithmic', title:{display:true, text:'Frecuencia [rad/s]', font:{size:16}}},
+      y:{title:{display:true, text:'Magnitud [dB]', font:{size:16}}}
+    },
+    plugins:{legend:{labels:{font:{size:14}}}}
+  }
+});
+
+const chartPhase = new Chart(document.getElementById('chartPhase'), {
+  type:'line',
+  data:{labels:[], datasets:[{label:'Fase [rad]', data:[], borderColor:'red', backgroundColor:'rgba(255,0,0,0.1)', fill:true}]},
+  options:{
+    responsive:false,
+    scales:{
+      x:{type:'logarithmic', title:{display:true, text:'Frecuencia [rad/s]', font:{size:16}}},
+      y:{title:{display:true, text:'Fase [rad]', font:{size:16}}}
+    },
+    plugins:{legend:{labels:{font:{size:14}}}}
+  }
+});
+
+const chartNyquist = new Chart(document.getElementById('chartNyquist'), {
+  type:'line',
+  data:{labels:[], datasets:[{label:'Nyquist', data:[], borderColor:'blue', fill:false}]},
+  options:{
+    responsive:false,
+    scales:{
+      x:{title:{display:true,text:'Re', font:{size:16}}},
+      y:{title:{display:true,text:'Im', font:{size:16}}}
+    },
+    plugins:{legend:{labels:{font:{size:14}}}}
+  }
+});
+
+let latestMagnitude = 0;
+let latestPhase = 0;
+
+function parsePlot(msg){
+  const m = msg.match(/^([-+]?[0-9]*\.?[0-9]+);([0-9]*\.?[0-9]+)([AF])$/);
+  if(!m){ log("⚠️ Formato inválido"); return; }
+  const val = parseFloat(m[1]), freq = parseFloat(m[2]), type = m[3];
+
+  if(type==="A"){
+    chartMag.data.labels.push(freq);
+    chartMag.data.datasets[0].data.push(val);
+    chartMag.update();
+    latestMagnitude = Math.pow(10, val/20);
+    if(!isNaN(latestPhase)) addNyquist(latestMagnitude, latestPhase);
+  } else if(type==="F"){
+    chartPhase.data.labels.push(freq);
+    chartPhase.data.datasets[0].data.push(val);
+    chartPhase.update();
+    latestPhase = val;
+    if(!isNaN(latestMagnitude)) addNyquist(latestMagnitude, latestPhase);
+  }
+}
+
+function addNyquist(mag, phase){
+  const re = mag * Math.cos(phase);
+  const im = mag * Math.sin(phase);
+  chartNyquist.data.labels.push('');
+  chartNyquist.data.datasets[0].data.push({x:re, y:im});
+  chartNyquist.update();
+}
+
+function downloadAllCharts(){
+  const charts = [
+    {chart: chartMag, defaultName: 'magnitud.png'},
+    {chart: chartPhase, defaultName: 'fase.png'},
+    {chart: chartNyquist, defaultName: 'nyquist.png'}
+  ];
+
+  charts.forEach(c => {
+    let filename = prompt(`Nombre para guardar ${c.defaultName}`, c.defaultName);
+    if(filename){
+      const link = document.createElement('a');
+      link.href = c.chart.toBase64Image();
+      link.download = filename;
+      link.click();
+    }
+  });
+}
+</script>
+</body>
+</html>
