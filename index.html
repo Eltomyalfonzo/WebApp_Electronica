@@ -30,7 +30,7 @@
     .charts-left { flex:1; }
     .charts-right { flex:1; display:flex; flex-direction:column; align-items:center; }
     canvas { width: 400px; height: 300px; display:block; margin-bottom:15px; }
-    form { margin:20px; display:flex; justify-content:center; flex-wrap:wrap; }
+    form { margin:20px; display:flex; justify-content:center; flex-wrap:wrap; gap:10px; }
     input { padding:5px; margin-right:10px; }
     img { max-width:200px; margin-bottom:20px; display:block; margin-left:auto; margin-right:auto; }
     pre { background:#f0f0f0; padding:10px; height:120px; overflow:auto; }
@@ -39,7 +39,7 @@
 <body>
 
 <div class="navbar">
-  <span>MQTT - Respuesta en Frecuencia - UTN - Facultad Regional San Fransisco</span>
+  <span>MQTT - Respuesta en Frecuencia - UTN - Facultad Regional San Francisco</span>
   <button onclick="downloadAllCharts()">Descargar Todos</button>
 </div>
 
@@ -55,6 +55,7 @@
 
 <form onsubmit="sendData(event)">
   <input id="deviceId" placeholder="ID del dispositivo (ej: ESP32_A1)" required>
+  <button type="button" onclick="connectDevice()">Conectar</button>
   <input id="inputData" placeholder="-10;1000A o 1.57;1000F">
   <button>Enviar</button>
 </form>
@@ -62,26 +63,27 @@
 <pre id="log"></pre>
 
 <script>
-const socket = io(); // Conecta con el backend Node.js (Socket.IO)
+const socket = io();
 let currentDevice = null;
 
-// Conectarse a un dispositivo (room)
-document.getElementById("deviceId").addEventListener("change", (e) => {
-  currentDevice = e.target.value.trim();
-  if (currentDevice) {
-    socket.emit("join_device", currentDevice);
-    log(`🔗 Conectado al dispositivo ${currentDevice}`);
-  }
-});
+// 🔌 Conectar con dispositivo
+function connectDevice() {
+  const id = document.getElementById("deviceId").value.trim();
+  if (!id) return log("⚠️ Ingrese un ID de dispositivo.");
+  currentDevice = id;
+  socket.emit("join_device", id);
+  socket.emit("connect_device", id); // avisa al servidor
+  log(`🔗 Intentando conectar con ${id}...`);
+}
 
-// Recibir datos desde backend (reenviados del broker MQTT)
+// 📩 Recibir datos desde backend (reenviados del broker MQTT)
 socket.on("update_data", ({ deviceId, payload }) => {
   if (!currentDevice || deviceId !== currentDevice) return;
   if (typeof payload === "string") parsePlot(payload);
   else if (payload.msg) parsePlot(payload.msg);
 });
 
-// Enviar comando (publica en dispositivos/{deviceId}/comando)
+// 📤 Enviar comando (publica en dispositivos/{deviceId}/comando)
 function sendData(e){
   e.preventDefault();
   const v = document.getElementById("inputData").value.trim();
@@ -92,12 +94,16 @@ function sendData(e){
   document.getElementById("inputData").value = "";
 }
 
-// Log auxiliar
+// 🧾 Log auxiliar
 function log(msg){
   const logEl = document.getElementById("log");
   logEl.textContent += msg + "\n";
   logEl.scrollTop = logEl.scrollHeight;
 }
+
+// ==========================
+//      GRAFICOS
+// ==========================
 
 Chart.defaults.font.family = 'Poppins';
 Chart.defaults.font.size = 14;
@@ -110,8 +116,7 @@ const chartMag = new Chart(document.getElementById('chartMag'), {
     scales:{
       x:{type:'logarithmic', title:{display:true, text:'Frecuencia [rad/s]', font:{size:16}}},
       y:{title:{display:true, text:'Magnitud [dB]', font:{size:16}}}
-    },
-    plugins:{legend:{labels:{font:{size:14}}}}
+    }
   }
 });
 
@@ -123,8 +128,7 @@ const chartPhase = new Chart(document.getElementById('chartPhase'), {
     scales:{
       x:{type:'logarithmic', title:{display:true, text:'Frecuencia [rad/s]', font:{size:16}}},
       y:{title:{display:true, text:'Fase [rad]', font:{size:16}}}
-    },
-    plugins:{legend:{labels:{font:{size:14}}}}
+    }
   }
 });
 
@@ -136,8 +140,7 @@ const chartNyquist = new Chart(document.getElementById('chartNyquist'), {
     scales:{
       x:{title:{display:true,text:'Re', font:{size:16}}},
       y:{title:{display:true,text:'Im', font:{size:16}}}
-    },
-    plugins:{legend:{labels:{font:{size:14}}}}
+    }
   }
 });
 
@@ -178,7 +181,6 @@ function downloadAllCharts(){
     {chart: chartPhase, defaultName: 'fase.png'},
     {chart: chartNyquist, defaultName: 'nyquist.png'}
   ];
-
   charts.forEach(c => {
     const filename = prompt(`Nombre para guardar ${c.defaultName}`, c.defaultName);
     if(filename){
