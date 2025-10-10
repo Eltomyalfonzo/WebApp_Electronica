@@ -1,12 +1,14 @@
 {
   "name": "proyecto_mqtt_webapp",
   "version": "1.0.0",
-  "description": "Proyecto MQTT con Node.js y Express",
+  "description": "Proyecto MQTT con Node.js, Express y Mosquitto",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "mqtt": "^4.3.7",
+    "socket.io": "^4.7.2"
   }
 }
