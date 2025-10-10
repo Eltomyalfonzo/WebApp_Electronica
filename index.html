@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>MQTT - Magnitud, Fase y Nyquist</title>
-  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
@@ -30,10 +30,10 @@
     .charts-left { flex:1; }
     .charts-right { flex:1; display:flex; flex-direction:column; align-items:center; }
     canvas { width: 400px; height: 300px; display:block; margin-bottom:15px; }
-    form { margin:20px; display:flex; justify-content:center; }
+    form { margin:20px; display:flex; justify-content:center; flex-wrap:wrap; }
     input { padding:5px; margin-right:10px; }
     img { max-width:200px; margin-bottom:20px; display:block; margin-left:auto; margin-right:auto; }
-    pre { background:#f0f0f0; padding:10px; }
+    pre { background:#f0f0f0; padding:10px; height:120px; overflow:auto; }
   </style>
 </head>
 <body>
@@ -43,21 +43,18 @@
   <button onclick="downloadAllCharts()">Descargar Todos</button>
 </div>
 
-
 <div class="container">
   <div class="charts-left">
-
     <canvas id="chartMag"></canvas>
-
     <canvas id="chartPhase"></canvas>
   </div>
-
   <div class="charts-right">
     <canvas id="chartNyquist"></canvas>
   </div>
 </div>
 
 <form onsubmit="sendData(event)">
+  <input id="deviceId" placeholder="ID del dispositivo (ej: ESP32_A1)" required>
   <input id="inputData" placeholder="-10;1000A o 1.57;1000F">
   <button>Enviar</button>
 </form>
@@ -65,19 +62,42 @@
 <pre id="log"></pre>
 
 <script>
-const client = mqtt.connect("ws://localhost:9001");
-client.on("connect", () => client.subscribe("test/topic"));
-client.on("message", (_, m) => parsePlot(m.toString()));
+const socket = io(); // Conecta con el backend Node.js (Socket.IO)
+let currentDevice = null;
 
+// Conectarse a un dispositivo (room)
+document.getElementById("deviceId").addEventListener("change", (e) => {
+  currentDevice = e.target.value.trim();
+  if (currentDevice) {
+    socket.emit("join_device", currentDevice);
+    log(`🔗 Conectado al dispositivo ${currentDevice}`);
+  }
+});
+
+// Recibir datos desde backend (reenviados del broker MQTT)
+socket.on("update_data", ({ deviceId, payload }) => {
+  if (!currentDevice || deviceId !== currentDevice) return;
+  if (typeof payload === "string") parsePlot(payload);
+  else if (payload.msg) parsePlot(payload.msg);
+});
+
+// Enviar comando (publica en dispositivos/{deviceId}/comando)
 function sendData(e){
   e.preventDefault();
-  let v = document.getElementById("inputData").value;
-  if(v){
-    client.publish("test/topic", v);
-    document.getElementById("inputData").value = "";
-  }
+  const v = document.getElementById("inputData").value.trim();
+  const id = document.getElementById("deviceId").value.trim();
+  if(!v || !id) return;
+  socket.emit("send_command", { deviceId: id, command: v });
+  log(`📤 Enviado a ${id}: ${v}`);
+  document.getElementById("inputData").value = "";
 }
-function log(msg){ document.getElementById("log").textContent += msg + "\n"; }
+
+// Log auxiliar
+function log(msg){
+  const logEl = document.getElementById("log");
+  logEl.textContent += msg + "\n";
+  logEl.scrollTop = logEl.scrollHeight;
+}
 
 Chart.defaults.font.family = 'Poppins';
 Chart.defaults.font.size = 14;
@@ -121,12 +141,12 @@ const chartNyquist = new Chart(document.getElementById('chartNyquist'), {
   }
 });
 
-let latestMagnitude = 0;
-let latestPhase = 0;
+let latestMagnitude = NaN;
+let latestPhase = NaN;
 
 function parsePlot(msg){
   const m = msg.match(/^([-+]?[0-9]*\.?[0-9]+);([0-9]*\.?[0-9]+)([AF])$/);
-  if(!m){ log("⚠️ Formato inválido"); return; }
+  if(!m){ log("⚠️ Formato inválido: " + msg); return; }
   const val = parseFloat(m[1]), freq = parseFloat(m[2]), type = m[3];
 
   if(type==="A"){
@@ -160,7 +180,7 @@ function downloadAllCharts(){
   ];
 
   charts.forEach(c => {
-    let filename = prompt(`Nombre para guardar ${c.defaultName}`, c.defaultName);
+    const filename = prompt(`Nombre para guardar ${c.defaultName}`, c.defaultName);
     if(filename){
       const link = document.createElement('a');
       link.href = c.chart.toBase64Image();
