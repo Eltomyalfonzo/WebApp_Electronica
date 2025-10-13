@@ -10,8 +10,8 @@ const io = new Server(server);
 // === CONFIGURACIÓN MQTT - HiveMQ Cloud ===
 const MQTT_HOST = process.env.MQTT_HOST || "79d9b250811241cda17602225df019b9.s1.eu.hivemq.cloud";
 const MQTT_PORT = process.env.MQTT_PORT || 8883;
-const MQTT_USER = process.env.MQTT_USER || "TU_USUARIO";
-const MQTT_PASS = process.env.MQTT_PASS || "TU_PASSWORD";
+const MQTT_USER = process.env.MQTT_USER || "admin";
+const MQTT_PASS = process.env.MQTT_PASS || "SuperMan123";
 
 // Opciones de conexión segura (TLS)
 const mqttOptions = {
