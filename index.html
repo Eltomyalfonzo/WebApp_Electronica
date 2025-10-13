@@ -61,6 +61,15 @@
 </form>
 
 <pre id="log"></pre>
+<!-- === Barrido de Frecuencia === -->
+<div style="text-align:center; margin-top:20px;">
+  <h3>⚡ Barrido de Frecuencia</h3>
+  <label>Inicio [Hz]: <input id="startFreq" type="number" value="100" step="1"></label>
+  <label>Fin [Hz]: <input id="endFreq" type="number" value="1000" step="1"></label>
+  <label>Paso [Hz]: <input id="stepFreq" type="number" value="100" step="1"></label>
+  <label>Espera [s]: <input id="waitTime" type="number" value="1" step="0.1"></label>
+  <button onclick="startSweep()">Start Sweep</button>
+</div>
 
 <script>
 const socket = io();
