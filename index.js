@@ -126,3 +126,44 @@ process.on('SIGINT', () => {
   server.close();
   process.exit(0);
 });
+// ==================================================
+// 🔁 Barrido de Frecuencia Automático
+// ==================================================
+let sweepRunning = false;
+
+async function startSweep() {
+  if (sweepRunning) {
+    log("⚠️ Barrido ya en ejecución.");
+    return;
+  }
+
+  const start = parseFloat(document.getElementById("startFreq").value);
+  const end = parseFloat(document.getElementById("endFreq").value);
+  const step = parseFloat(document.getElementById("stepFreq").value);
+  const waitSec = parseFloat(document.getElementById("waitTime").value);
+  const id = document.getElementById("deviceId").value.trim();
+
+  if (!id || isNaN(start) || isNaN(end) || isNaN(step) || isNaN(waitSec)) {
+    log("⚠️ Complete todos los campos correctamente.");
+    return;
+  }
+
+  if (end <= start || step <= 0) {
+    log("⚠️ Valores inválidos: el límite superior debe ser mayor al inferior y el paso > 0.");
+    return;
+  }
+
+  sweepRunning = true;
+  log(`🚀 Iniciando barrido de ${start} Hz a ${end} Hz, paso ${step} Hz, espera ${waitSec}s...`);
+
+  for (let f = start; f <= end; f += step) {
+    if (!sweepRunning) break;
+    const cmd = `S${Math.round(f)}`;
+    socket.emit("send_command", { deviceId: id, command: cmd });
+    log(`📤 Enviado: ${cmd}`);
+    await new Promise(res => setTimeout(res, waitSec * 1000));
+  }
+
+  sweepRunning = false;
+  log("✅ Barrido completado.");
+}
