@@ -1,29 +1,13 @@
 version: "3.8"
 services:
-  mosquitto:
-    image: eclipse-mosquitto:2.0.15
-    container_name: mosquitto
-    ports:
-      - "1883:1883"    # MQTT (puede conectar tus ESP32 en la LAN)
-      - "9001:9001"    # Websockets (opcional)
-    volumes:
-      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
-      - mosq_data:/mosquitto/data
-      - mosq_log:/mosquitto/log
-    restart: unless-stopped
-
   webapp:
     build: .
     container_name: webapp
     ports:
       - "3000:3000"
-    depends_on:
-      - mosquitto
     environment:
-      - MQTT_BROKER=mqtt://mosquitto
-      - MQTT_PORT=1883
+      - MQTT_HOST=79d9b250811241cda17602225df019b9.s1.eu.hivemq.cloud
+      - MQTT_PORT=8883
+      - MQTT_USER=${MQTT_USER}
+      - MQTT_PASS=${MQTT_PASS}
     restart: unless-stopped
-
-volumes:
-  mosq_data:
-  mosq_log:
