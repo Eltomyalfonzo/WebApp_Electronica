@@ -1,162 +1,487 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>MQTT - Magnitud, Fase y Nyquist</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FRA_Monitor</title>
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Poppins', sans-serif; margin:0; padding:0; }
-    .navbar {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      background-color:#003366;
-      color:white;
-      padding:10px 20px;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    .navbar button {
-      background-color:#007BFF;
-      color:white;
-      border:none;
-      padding:8px 15px;
-      border-radius:5px;
-      cursor:pointer;
-      font-size:14px;
-    }
-    .navbar button:hover { background-color:#0056b3; }
 
-    .container { display:flex; gap:20px; padding:20px; }
-    .charts-left { flex:1; }
-    .charts-right { flex:1; display:flex; flex-direction:column; align-items:center; }
-    canvas { width: 400px; height: 300px; display:block; margin-bottom:15px; }
-    form { margin:20px; display:flex; justify-content:center; flex-wrap:wrap; gap:10px; }
-    input { padding:5px; margin-right:10px; }
-    img { max-width:200px; margin-bottom:20px; display:block; margin-left:auto; margin-right:auto; }
-    pre { background:#f0f0f0; padding:10px; height:120px; overflow:auto; }
-    .sweep-controls { text-align:center; margin-top:20px; }
-    .sweep-controls input { width:80px; text-align:center; }
-    .sweep-controls button { background-color:#28a745; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; }
-    .sweep-controls button:hover { background-color:#1e7e34; }
-    .stop-btn { background-color:#dc3545 !important; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #1a1a1a;
+    }
+
+    .navbar {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 1.2rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      border-bottom: 2px solid #667eea;
+    }
+
+    .navbar h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 1px;
+    }
+
+    .navbar button {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .navbar button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .chart-card {
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .chart-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+    }
+
+    .chart-card h3 {
+      color: #667eea;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 300px !important;
+      display: block;
+    }
+
+    .nyquist-section {
+      grid-column: 1 / -1;
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .nyquist-section h3 {
+      color: #667eea;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .form-section {
+      grid-column: 1 / -1;
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      padding: 0.7rem 1rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    button[type="button"],
+    button[type="submit"] {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+    }
+
+    button[type="button"]:hover,
+    button[type="submit"]:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    #log {
+      background: #f5f5f5;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 1rem;
+      height: 150px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      color: #333;
+      line-height: 1.5;
+    }
+
+    .sweep-section {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+      border: 2px solid #667eea;
+      border-radius: 16px;
+      padding: 2rem;
+    }
+
+    .sweep-section h3 {
+      color: #667eea;
+      margin-bottom: 1.5rem;
+      font-size: 1.3rem;
+    }
+
+    .sweep-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .sweep-controls label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .sweep-controls input {
+      padding: 0.7rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    .sweep-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+
+    .sweep-buttons button {
+      padding: 0.9rem 2rem;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .stop-btn {
+      background: linear-gradient(135deg, #f093fb, #f5576c) !important;
+    }
+
+    .stop-btn:hover {
+      box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4) !important;
+    }
+
+    @media (max-width: 1024px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .navbar h1 {
+        font-size: 1.4rem;
+      }
+
+      .container {
+        padding: 1rem;
+        gap: 1rem;
+      }
+
+      form {
+        flex-direction: column;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      button {
+        width: 100%;
+      }
+
+      .sweep-controls {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
 
 <div class="navbar">
-  <span>MQTT - Respuesta en Frecuencia - UTN - Facultad Regional San Francisco</span>
-  <button onclick="downloadAllCharts()">Descargar Todos</button>
+  <h1>⚡ FRA_Monitor</h1>
+  <button onclick="downloadAllCharts()">📥 Descargar Gráficos</button>
 </div>
 
 <div class="container">
-  <div class="charts-left">
+  <!-- Magnitude Chart -->
+  <div class="chart-card">
+    <h3>📊 Magnitud [dB]</h3>
     <canvas id="chartMag"></canvas>
+  </div>
+
+  <!-- Phase Chart -->
+  <div class="chart-card">
+    <h3>📐 Fase [rad]</h3>
     <canvas id="chartPhase"></canvas>
   </div>
-  <div class="charts-right">
+
+  <!-- Nyquist Plot -->
+  <div class="nyquist-section">
+    <h3>🔄 Diagrama de Nyquist</h3>
     <canvas id="chartNyquist"></canvas>
   </div>
-</div>
 
-<form onsubmit="sendData(event)">
-  <input id="deviceId" placeholder="ID del dispositivo (ej: ESP32_A1)" required>
-  <button type="button" onclick="connectDevice()">Conectar</button>
-  <input id="inputData" placeholder="-10;1000A o 1.57;1000F o S1000">
-  <button>Enviar</button>
-</form>
+  <!-- Connection & Command Form -->
+  <div class="form-section">
+    <h3>🔌 Conexión y Control</h3>
+    <form onsubmit="sendData(event)">
+      <input id="deviceId" type="text" placeholder="ID del dispositivo (ej: ESP32_A1)" required>
+      <button type="button" onclick="connectDevice()">Conectar</button>
+      <input id="inputData" type="text" placeholder="-10;1000A o 1.57;1000F o S1000">
+      <button type="submit">Enviar</button>
+    </form>
+    
+    <h4 style="color: #667eea; margin-bottom: 1rem; font-size: 0.9rem;">📋 Consola:</h4>
+    <pre id="log"></pre>
+  </div>
 
-<pre id="log"></pre>
-
-<!-- === Barrido de Frecuencia === -->
-<div class="sweep-controls">
-  <h3>⚡ Barrido de Frecuencia</h3>
-  <label>Inicio [Hz]: <input id="startFreq" type="number" value="100" step="1"></label>
-  <label>Fin [Hz]: <input id="endFreq" type="number" value="1000" step="1"></label>
-  <label>Paso [Hz]: <input id="stepFreq" type="number" value="100" step="1"></label>
-  <label>Espera [s]: <input id="waitTime" type="number" value="1" step="0.1"></label>
-  <button onclick="startSweep()">Start Sweep</button>
-  <button onclick="stopSweep()" class="stop-btn">Stop</button>
+  <!-- Automatic Frequency Sweep -->
+  <div class="sweep-section">
+    <h3>⚙️ Barrido de Frecuencia Automático</h3>
+    <div class="sweep-controls">
+      <label>
+        Inicio [Hz]:
+        <input id="startFreq" type="number" value="100" step="1" min="1">
+      </label>
+      <label>
+        Fin [Hz]:
+        <input id="endFreq" type="number" value="1000" step="1" min="1">
+      </label>
+      <label>
+        Paso [Hz]:
+        <input id="stepFreq" type="number" value="100" step="1" min="1">
+      </label>
+      <label>
+        Espera [s]:
+        <input id="waitTime" type="number" value="1" step="0.1" min="0.1">
+      </label>
+    </div>
+    <div class="sweep-buttons">
+      <button onclick="startSweep()">▶️ Iniciar Barrido</button>
+      <button onclick="stopSweep()" class="stop-btn">⏹️ Detener</button>
+    </div>
+  </div>
 </div>
 
 <script>
 const socket = io();
 let currentDevice = null;
 
-// ==========================
-// 🔌 Conectar con dispositivo
-// ==========================
 function connectDevice() {
   const id = document.getElementById("deviceId").value.trim();
   if (!id) return log("⚠️ Ingrese un ID de dispositivo.");
   currentDevice = id;
   socket.emit("join_device", id);
   socket.emit("connect_device", id);
-  log(`🔗 Intentando conectar con ${id}...`);
+  log(`📡 Intentando conectar con ${id}...`);
 }
 
-// 📩 Recibir datos desde backend
 socket.on("update_data", ({ deviceId, payload }) => {
   if (!currentDevice || deviceId !== currentDevice) return;
   if (typeof payload === "string") parsePlot(payload);
   else if (payload.msg) parsePlot(payload.msg);
 });
 
-// 📤 Enviar comando (MQTT → ESP32)
-function sendData(e){
+function sendData(e) {
   e.preventDefault();
   const v = document.getElementById("inputData").value.trim();
   const id = document.getElementById("deviceId").value.trim();
-  if(!v || !id) return;
+  if (!v || !id) return;
   socket.emit("send_command", { deviceId: id, command: v });
   log(`📤 Enviado a ${id}: ${v}`);
   document.getElementById("inputData").value = "";
 }
 
-// 🧾 Log auxiliar
-function log(msg){
+function log(msg) {
   const logEl = document.getElementById("log");
   logEl.textContent += msg + "\n";
   logEl.scrollTop = logEl.scrollHeight;
 }
 
-// ==========================
-//      GRAFICOS
-// ==========================
-Chart.defaults.font.family = 'Poppins';
+// Charts Configuration
+Chart.defaults.font.family = 'Inter';
 Chart.defaults.font.size = 14;
+Chart.defaults.color = '#666';
 
 const chartMag = new Chart(document.getElementById('chartMag'), {
-  type:'line',
-  data:{labels:[], datasets:[{label:'Magnitud [dB]', data:[], borderColor:'blue', backgroundColor:'rgba(0,0,255,0.1)', fill:true}]},
-  options:{
-    responsive:false,
-    scales:{
-      x:{type:'logarithmic', title:{display:true, text:'Frecuencia [rad/s]', font:{size:16}}},
-      y:{title:{display:true, text:'Magnitud [dB]', font:{size:16}}}
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Magnitud [dB]',
+      data: [],
+      borderColor: '#667eea',
+      backgroundColor: 'rgba(102, 126, 234, 0.1)',
+      borderWidth: 2.5,
+      fill: true,
+      tension: 0.4,
+      pointRadius: 4,
+      pointBackgroundColor: '#667eea',
+      pointBorderColor: 'white',
+      pointBorderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, labels: { usePointStyle: true, padding: 15 } }
+    },
+    scales: {
+      x: {
+        type: 'logarithmic',
+        title: { display: true, text: 'Frecuencia [rad/s]', font: { size: 14, weight: 600 } },
+        grid: { color: 'rgba(0,0,0,0.05)' }
+      },
+      y: {
+        title: { display: true, text: 'Magnitud [dB]', font: { size: 14, weight: 600 } },
+        grid: { color: 'rgba(0,0,0,0.05)' }
+      }
     }
   }
 });
 
 const chartPhase = new Chart(document.getElementById('chartPhase'), {
-  type:'line',
-  data:{labels:[], datasets:[{label:'Fase [rad]', data:[], borderColor:'red', backgroundColor:'rgba(255,0,0,0.1)', fill:true}]},
-  options:{
-    responsive:false,
-    scales:{
-      x:{type:'logarithmic', title:{display:true, text:'Frecuencia [rad/s]', font:{size:16}}},
-      y:{title:{display:true, text:'Fase [rad]', font:{size:16}}}
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Fase [rad]',
+      data: [],
+      borderColor: '#f5576c',
+      backgroundColor: 'rgba(245, 87, 108, 0.1)',
+      borderWidth: 2.5,
+      fill: true,
+      tension: 0.4,
+      pointRadius: 4,
+      pointBackgroundColor: '#f5576c',
+      pointBorderColor: 'white',
+      pointBorderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, labels: { usePointStyle: true, padding: 15 } }
+    },
+    scales: {
+      x: {
+        type: 'logarithmic',
+        title: { display: true, text: 'Frecuencia [rad/s]', font: { size: 14, weight: 600 } },
+        grid: { color: 'rgba(0,0,0,0.05)' }
+      },
+      y: {
+        title: { display: true, text: 'Fase [rad]', font: { size: 14, weight: 600 } },
+        grid: { color: 'rgba(0,0,0,0.05)' }
+      }
     }
   }
 });
 
 const chartNyquist = new Chart(document.getElementById('chartNyquist'), {
-  type:'line',
-  data:{labels:[], datasets:[{label:'Nyquist', data:[], borderColor:'blue', fill:false}]},
-  options:{
-    responsive:false,
-    scales:{
-      x:{title:{display:true,text:'Re', font:{size:16}}},
-      y:{title:{display:true,text:'Im', font:{size:16}}}
+  type: 'scatter',
+  data: {
+    datasets: [{
+      label: 'Nyquist',
+      data: [],
+      borderColor: '#764ba2',
+      backgroundColor: 'rgba(118, 75, 162, 0.5)',
+      borderWidth: 2.5,
+      pointRadius: 5,
+      pointBackgroundColor: '#764ba2',
+      showLine: true,
+      fill: false,
+      tension: 0.3
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, labels: { usePointStyle: true, padding: 15 } }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Re', font: { size: 14, weight: 600 } },
+        grid: { color: 'rgba(0,0,0,0.05)' }
+      },
+      y: {
+        title: { display: true, text: 'Im', font: { size: 14, weight: 600 } },
+        grid: { color: 'rgba(0,0,0,0.05)' }
+      }
     }
   }
 });
@@ -164,55 +489,52 @@ const chartNyquist = new Chart(document.getElementById('chartNyquist'), {
 let latestMagnitude = NaN;
 let latestPhase = NaN;
 
-function parsePlot(msg){
+function parsePlot(msg) {
   const m = msg.match(/^([-+]?[0-9]*\.?[0-9]+);([0-9]*\.?[0-9]+)([AF])$/);
-  if(!m){ log("⚠️ Formato inválido: " + msg); return; }
+  if (!m) {
+    log("⚠️ Formato inválido: " + msg);
+    return;
+  }
   const val = parseFloat(m[1]), freq = parseFloat(m[2]), type = m[3];
 
-  if(type==="A"){
+  if (type === "A") {
     chartMag.data.labels.push(freq);
     chartMag.data.datasets[0].data.push(val);
-    chartMag.update();
-    latestMagnitude = Math.pow(10, val/20);
-    if(!isNaN(latestPhase)) addNyquist(latestMagnitude, latestPhase);
-  } else if(type==="F"){
+    chartMag.update('none');
+    latestMagnitude = Math.pow(10, val / 20);
+    if (!isNaN(latestPhase)) addNyquist(latestMagnitude, latestPhase);
+  } else if (type === "F") {
     chartPhase.data.labels.push(freq);
     chartPhase.data.datasets[0].data.push(val);
-    chartPhase.update();
+    chartPhase.update('none');
     latestPhase = val;
-    if(!isNaN(latestMagnitude)) addNyquist(latestMagnitude, latestPhase);
+    if (!isNaN(latestMagnitude)) addNyquist(latestMagnitude, latestPhase);
   }
 }
 
-function addNyquist(mag, phase){
+function addNyquist(mag, phase) {
   const re = mag * Math.cos(phase);
   const im = mag * Math.sin(phase);
-  chartNyquist.data.labels.push('');
-  chartNyquist.data.datasets[0].data.push({x:re, y:im});
-  chartNyquist.update();
+  chartNyquist.data.datasets[0].data.push({ x: re, y: im });
+  chartNyquist.update('none');
 }
 
-function downloadAllCharts(){
+function downloadAllCharts() {
   const charts = [
-    {chart: chartMag, defaultName: 'magnitud.png'},
-    {chart: chartPhase, defaultName: 'fase.png'},
-    {chart: chartNyquist, defaultName: 'nyquist.png'}
+    { chart: chartMag, name: 'magnitud.png' },
+    { chart: chartPhase, name: 'fase.png' },
+    { chart: chartNyquist, name: 'nyquist.png' }
   ];
   charts.forEach(c => {
-    const filename = prompt(`Nombre para guardar ${c.defaultName}`, c.defaultName);
-    if(filename){
-      const link = document.createElement('a');
-      link.href = c.chart.toBase64Image();
-      link.download = filename;
-      link.click();
-    }
+    const link = document.createElement('a');
+    link.href = c.chart.toBase64Image();
+    link.download = c.name;
+    link.click();
   });
 }
 
-// ==========================
-// 🔁 Barrido Automático
-// ==========================
 let sweepRunning = false;
+let sweepAbort = false;
 
 async function startSweep() {
   if (sweepRunning) {
@@ -232,15 +554,19 @@ async function startSweep() {
   }
 
   if (end <= start || step <= 0) {
-    log("⚠️ Valores inválidos: el límite superior debe ser mayor al inferior y el paso > 0.");
+    log("⚠️ Valores inválidos: fin debe ser > inicio y paso > 0.");
     return;
   }
 
   sweepRunning = true;
+  sweepAbort = false;
   log(`🚀 Iniciando barrido de ${start} Hz a ${end} Hz (paso ${step} Hz, espera ${waitSec}s)`);
 
   for (let f = start; f <= end; f += step) {
-    if (!sweepRunning) break;
+    if (sweepAbort) {
+      log("⏹️ Barrido detenido por usuario.");
+      break;
+    }
     const cmd = `S${Math.round(f)}`;
     socket.emit("send_command", { deviceId: id, command: cmd });
     log(`📤 Enviado: ${cmd}`);
@@ -252,9 +578,13 @@ async function startSweep() {
 }
 
 function stopSweep() {
-  sweepRunning = false;
-  log("🛑 Barrido detenido por el usuario.");
+  if (!sweepRunning) {
+    log("⚠️ No hay barrido en ejecución.");
+    return;
+  }
+  sweepAbort = true;
 }
 </script>
+
 </body>
 </html>
