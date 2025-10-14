@@ -41,10 +41,12 @@ function connectMQTT() {
     clean: true,
     connectTimeout: 4000,
     reconnectPeriod: 1000,
-    rejectUnauthorized: false // Para certificados autofirmados
+    rejectUnauthorized: false, // Para certificados autofirmados
+    protocol: 'mqtts' // Usar MQTT con TLS para HiveMQ Cloud
   };
 
-  const connectUrl = `mqtt://${MQTT_HOST}:${MQTT_PORT}`;
+  // Usar mqtts:// para HiveMQ Cloud (puerto 8883)
+  const connectUrl = `mqtts://${MQTT_HOST}:${MQTT_PORT}`;
   
   mqttClient = mqtt.connect(connectUrl, options);
 
