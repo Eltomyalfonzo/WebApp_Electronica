@@ -17,22 +17,5 @@ services:
     networks:
       - fra-network
 
-  mosquitto:
-    image: eclipse-mosquitto:latest
-    container_name: mosquitto-broker
-    ports:
-      - "1883:1883"
-      - "9001:9001"
-    volumes:
-      - ./mosquitto-config:/mosquitto/config
-      - mosquitto-data:/mosquitto/data
-      - mosquitto-logs:/mosquitto/log
-    networks:
-      - fra-network
-    restart: unless-stopped
-
-volumes:
-  mosquitto-data:
-  mosquitto-logs:
-
 networks:
+  fra-network:
