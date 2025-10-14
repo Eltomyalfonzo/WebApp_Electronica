@@ -34,6 +34,11 @@
     input { padding:5px; margin-right:10px; }
     img { max-width:200px; margin-bottom:20px; display:block; margin-left:auto; margin-right:auto; }
     pre { background:#f0f0f0; padding:10px; height:120px; overflow:auto; }
+    .sweep-controls { text-align:center; margin-top:20px; }
+    .sweep-controls input { width:80px; text-align:center; }
+    .sweep-controls button { background-color:#28a745; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; }
+    .sweep-controls button:hover { background-color:#1e7e34; }
+    .stop-btn { background-color:#dc3545 !important; }
   </style>
 </head>
 <body>
@@ -56,43 +61,47 @@
 <form onsubmit="sendData(event)">
   <input id="deviceId" placeholder="ID del dispositivo (ej: ESP32_A1)" required>
   <button type="button" onclick="connectDevice()">Conectar</button>
-  <input id="inputData" placeholder="-10;1000A o 1.57;1000F">
+  <input id="inputData" placeholder="-10;1000A o 1.57;1000F o S1000">
   <button>Enviar</button>
 </form>
 
 <pre id="log"></pre>
+
 <!-- === Barrido de Frecuencia === -->
-<div style="text-align:center; margin-top:20px;">
+<div class="sweep-controls">
   <h3>⚡ Barrido de Frecuencia</h3>
   <label>Inicio [Hz]: <input id="startFreq" type="number" value="100" step="1"></label>
   <label>Fin [Hz]: <input id="endFreq" type="number" value="1000" step="1"></label>
   <label>Paso [Hz]: <input id="stepFreq" type="number" value="100" step="1"></label>
   <label>Espera [s]: <input id="waitTime" type="number" value="1" step="0.1"></label>
   <button onclick="startSweep()">Start Sweep</button>
+  <button onclick="stopSweep()" class="stop-btn">Stop</button>
 </div>
 
 <script>
 const socket = io();
 let currentDevice = null;
 
+// ==========================
 // 🔌 Conectar con dispositivo
+// ==========================
 function connectDevice() {
   const id = document.getElementById("deviceId").value.trim();
   if (!id) return log("⚠️ Ingrese un ID de dispositivo.");
   currentDevice = id;
   socket.emit("join_device", id);
-  socket.emit("connect_device", id); // avisa al servidor
+  socket.emit("connect_device", id);
   log(`🔗 Intentando conectar con ${id}...`);
 }
 
-// 📩 Recibir datos desde backend (reenviados del broker MQTT)
+// 📩 Recibir datos desde backend
 socket.on("update_data", ({ deviceId, payload }) => {
   if (!currentDevice || deviceId !== currentDevice) return;
   if (typeof payload === "string") parsePlot(payload);
   else if (payload.msg) parsePlot(payload.msg);
 });
 
-// 📤 Enviar comando (publica en dispositivos/{deviceId}/comando)
+// 📤 Enviar comando (MQTT → ESP32)
 function sendData(e){
   e.preventDefault();
   const v = document.getElementById("inputData").value.trim();
@@ -113,7 +122,6 @@ function log(msg){
 // ==========================
 //      GRAFICOS
 // ==========================
-
 Chart.defaults.font.family = 'Poppins';
 Chart.defaults.font.size = 14;
 
@@ -199,6 +207,53 @@ function downloadAllCharts(){
       link.click();
     }
   });
+}
+
+// ==========================
+// 🔁 Barrido Automático
+// ==========================
+let sweepRunning = false;
+
+async function startSweep() {
+  if (sweepRunning) {
+    log("⚠️ Barrido ya en ejecución.");
+    return;
+  }
+
+  const start = parseFloat(document.getElementById("startFreq").value);
+  const end = parseFloat(document.getElementById("endFreq").value);
+  const step = parseFloat(document.getElementById("stepFreq").value);
+  const waitSec = parseFloat(document.getElementById("waitTime").value);
+  const id = document.getElementById("deviceId").value.trim();
+
+  if (!id || isNaN(start) || isNaN(end) || isNaN(step) || isNaN(waitSec)) {
+    log("⚠️ Complete todos los campos correctamente.");
+    return;
+  }
+
+  if (end <= start || step <= 0) {
+    log("⚠️ Valores inválidos: el límite superior debe ser mayor al inferior y el paso > 0.");
+    return;
+  }
+
+  sweepRunning = true;
+  log(`🚀 Iniciando barrido de ${start} Hz a ${end} Hz (paso ${step} Hz, espera ${waitSec}s)`);
+
+  for (let f = start; f <= end; f += step) {
+    if (!sweepRunning) break;
+    const cmd = `S${Math.round(f)}`;
+    socket.emit("send_command", { deviceId: id, command: cmd });
+    log(`📤 Enviado: ${cmd}`);
+    await new Promise(res => setTimeout(res, waitSec * 1000));
+  }
+
+  sweepRunning = false;
+  log("✅ Barrido completado.");
+}
+
+function stopSweep() {
+  sweepRunning = false;
+  log("🛑 Barrido detenido por el usuario.");
 }
 </script>
 </body>
