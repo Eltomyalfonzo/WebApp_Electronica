@@ -116,7 +116,7 @@ io.on('connection', (socket) => {
   // Enviar comandos al dispositivo
   socket.on('send_command', ({ deviceId, command }) => {
     if (mqttClient && mqttClient.connected) {
-      const topic = `devices/${deviceId}/command`;
+      const topic = `dispositivos/${deviceId}/comando`;
       mqttClient.publish(topic, command, (err) => {
         if (err) {
           console.error(`❌ Error publicando en ${topic}:`, err);
