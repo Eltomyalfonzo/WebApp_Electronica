@@ -98,7 +98,7 @@ io.on('connection', (socket) => {
   // Conectar dispositivo (suscribirse al topic MQTT)
   socket.on('connect_device', (deviceId) => {
     if (mqttClient && mqttClient.connected) {
-      const topic = `devices/${deviceId}/data`;
+      const topic = `dispositivos/${deviceId}/datos`;
       mqttClient.subscribe(topic, (err) => {
         if (err) {
           console.error(`❌ Error subscribiendo a ${topic}:`, err);
