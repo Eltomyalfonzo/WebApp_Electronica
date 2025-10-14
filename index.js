@@ -27,6 +27,7 @@ const MQTT_PASS = process.env.MQTT_PASS || 'admin';
 
 let mqttClient;
 const deviceSessions = {}; // Rastrear sesiones activas
+const subscribedTopics = new Set(); // Rastrear topics suscritos
 
 // ===================================
 // CONEXION MQTT
@@ -55,7 +56,7 @@ function connectMQTT() {
   });
 
   mqttClient.on('error', (err) => {
-    console.error('❌ Error MQTT:', err);
+    console.error('❌ Error MQTT:', err.message);
   });
 
   mqttClient.on('disconnect', () => {
@@ -67,9 +68,11 @@ function connectMQTT() {
     
     // Extraer deviceId del topic (ej: "dispositivos/ESP32_A1/datos" -> "ESP32_A1")
     const parts = topic.split('/');
-    if (parts.length >= 2) {
+    if (parts.length >= 3) {
       const deviceId = parts[1];
-      const topicType = parts[2]; // datos, comando, adc, etc.
+      const topicType = parts[2]; // datos, adc, status, etc.
+      
+      console.log(`📡 Device: ${deviceId}, Type: ${topicType}`);
       
       // Emitir según el tipo de topic
       if (topicType === 'adc') {
@@ -77,12 +80,19 @@ function connectMQTT() {
           deviceId: deviceId,
           data: message.toString()
         });
-      } else {
-        // Otros tópicos (datos, status, etc.)
+        console.log(`✅ Enviado ADC a clientes de ${deviceId}`);
+      } else if (topicType === 'datos') {
         io.to(deviceId).emit('update_data', {
           deviceId: deviceId,
           payload: message.toString()
         });
+        console.log(`✅ Enviado datos a clientes de ${deviceId}`);
+      } else if (topicType === 'status') {
+        io.to(deviceId).emit('device_status', {
+          deviceId: deviceId,
+          status: message.toString()
+        });
+        console.log(`✅ Estado recibido: ${message.toString()}`);
       }
     }
   });
@@ -104,22 +114,30 @@ io.on('connection', (socket) => {
     deviceSessions[deviceId].push(socket.id);
   });
 
-  // Conectar dispositivo (suscribirse al topic MQTT)
+  // Conectar dispositivo (suscribirse a todos los topics del dispositivo)
   socket.on('connect_device', (deviceId) => {
     if (mqttClient && mqttClient.connected) {
+      // Topics a subscribirse
       const topicDatos = `dispositivos/${deviceId}/datos`;
       const topicADC = `dispositivos/${deviceId}/adc`;
+      const topicStatus = `dispositivos/${deviceId}/status`;
+      const topicsToSub = [topicDatos, topicADC, topicStatus];
       
-      mqttClient.subscribe([topicDatos, topicADC], (err) => {
+      console.log(`🔄 Subscribiendo a topics para ${deviceId}...`);
+      
+      mqttClient.subscribe(topicsToSub, { qos: 1 }, (err) => {
         if (err) {
           console.error(`❌ Error subscribiendo:`, err);
           socket.emit('error', `No se pudo suscribir a los tópicos`);
         } else {
-          console.log(`📡 Suscrito a: ${topicDatos} y ${topicADC}`);
+          console.log(`📡 Suscrito a: ${topicsToSub.join(', ')}`);
+          topicsToSub.forEach(t => subscribedTopics.add(t));
           socket.emit('status', `Conectado a ${deviceId}`);
+          console.log(`✅ Cliente notificado de conexión exitosa`);
         }
       });
     } else {
+      console.error('❌ MQTT no está conectado');
       socket.emit('error', 'MQTT no está conectado');
     }
   });
@@ -128,16 +146,20 @@ io.on('connection', (socket) => {
   socket.on('send_command', ({ deviceId, command }) => {
     if (mqttClient && mqttClient.connected) {
       const topic = `dispositivos/${deviceId}/comando`;
-      mqttClient.publish(topic, command, (err) => {
+      
+      console.log(`📤 Publicando en ${topic}: ${command}`);
+      
+      mqttClient.publish(topic, command, { qos: 1 }, (err) => {
         if (err) {
-          console.error(`❌ Error publicando en ${topic}:`, err);
+          console.error(`❌ Error publicando:`, err);
           socket.emit('error', `No se pudo enviar el comando a ${deviceId}`);
         } else {
-          console.log(`📤 Comando enviado a ${topic}: ${command}`);
+          console.log(`✅ Comando enviado a ${topic}: ${command}`);
           socket.emit('command_sent', { deviceId, command, status: 'ok' });
         }
       });
     } else {
+      console.error('❌ MQTT no está conectado');
       socket.emit('error', 'MQTT no está conectado');
     }
   });
@@ -195,4 +217,5 @@ connectMQTT();
 server.listen(PORT, () => {
   console.log(`🚀 Servidor FRA_Monitor escuchando en puerto ${PORT}`);
   console.log(`📍 Accede a http://localhost:${PORT}`);
+  console.log(`📡 MQTT Host: ${MQTT_HOST}:${MQTT_PORT}`);
 });
