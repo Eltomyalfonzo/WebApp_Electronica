@@ -126,7 +126,8 @@
     }
 
     input[type="text"],
-    input[type="number"] {
+    input[type="number"],
+    select {
       padding: 0.7rem 1rem;
       border: 2px solid #e0e0e0;
       border-radius: 8px;
@@ -136,14 +137,16 @@
     }
 
     input[type="text"]:focus,
-    input[type="number"]:focus {
+    input[type="number"]:focus,
+    select:focus {
       outline: none;
       border-color: #667eea;
       box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
     button[type="button"],
-    button[type="submit"] {
+    button[type="submit"],
+    button {
       background: linear-gradient(135deg, #667eea, #764ba2);
       color: white;
       border: none;
@@ -153,10 +156,12 @@
       font-weight: 600;
       transition: all 0.3s ease;
       font-family: 'Inter', sans-serif;
+      font-size: 1rem;
     }
 
     button[type="button"]:hover,
-    button[type="submit"]:hover {
+    button[type="submit"]:hover,
+    button:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
     }
@@ -230,6 +235,44 @@
       box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4) !important;
     }
 
+    .adc-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .adc-controls button {
+      padding: 0.9rem 1.5rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .adc-trigger-controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .adc-trigger-controls label {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .adc-trigger-controls select,
+    .adc-trigger-controls input {
+      padding: 0.5rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: 'Inter', sans-serif;
+    }
+
     @media (max-width: 1024px) {
       .container {
         grid-template-columns: 1fr;
@@ -264,6 +307,15 @@
       .sweep-controls {
         grid-template-columns: 1fr;
       }
+
+      .adc-controls {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .adc-trigger-controls {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
   </style>
 </head>
@@ -295,7 +347,7 @@
 
   <!-- Connection & Command Form -->
   <div class="form-section">
-    <h3>🔌 Conexión y Control</h3>
+    <h3>🔌 Conexión y Control - FRA</h3>
     <form onsubmit="sendData(event)">
       <input id="deviceId" type="text" placeholder="ID del dispositivo (ej: ESP32_A1)" required>
       <button type="button" onclick="connectDevice()">Conectar</button>
@@ -305,6 +357,45 @@
     
     <h4 style="color: #667eea; margin-bottom: 1rem; font-size: 0.9rem;">📋 Consola:</h4>
     <pre id="log"></pre>
+  </div>
+
+  <!-- ADC Channel Controls -->
+  <div class="form-section">
+    <h3>📊 Control de Canales ADC</h3>
+    <div class="adc-controls">
+      <button onclick="sendCommand('CH1ON')" style="background: linear-gradient(135deg, #667eea, #764ba2);">✅ CH1 ON</button>
+      <button onclick="sendCommand('CH1OFF')" style="background: linear-gradient(135deg, #f093fb, #f5576c);">❌ CH1 OFF</button>
+      <button onclick="sendCommand('CH2ON')" style="background: linear-gradient(135deg, #667eea, #764ba2);">✅ CH2 ON</button>
+      <button onclick="sendCommand('CH2OFF')" style="background: linear-gradient(135deg, #f093fb, #f5576c);">❌ CH2 OFF</button>
+    </div>
+  </div>
+
+  <!-- ADC Chart with Trigger Controls -->
+  <div class="form-section">
+    <h3>📈 Osciloscopio - ADC Dual Channel</h3>
+    <div class="adc-trigger-controls">
+      <label>
+        Trigger:
+        <select id="triggerChannel">
+          <option value="none">Deshabilitado</option>
+          <option value="ch1">Canal 1</option>
+          <option value="ch2">Canal 2</option>
+        </select>
+      </label>
+      <label>
+        Nivel: 
+        <input id="triggerLevel" type="number" value="2048" min="0" max="4095">
+      </label>
+      <label>
+        Modo: 
+        <select id="triggerMode">
+          <option value="rising">Flanco Ascendente</option>
+          <option value="falling">Flanco Descendente</option>
+        </select>
+      </label>
+      <button onclick="clearADCChart()" style="background: linear-gradient(135deg, #f093fb, #f5576c);">🗑️ Limpiar</button>
+    </div>
+    <canvas id="chartADC"></canvas>
   </div>
 
   <!-- Automatic Frequency Sweep -->
@@ -354,6 +445,12 @@ socket.on("update_data", ({ deviceId, payload }) => {
   else if (payload.msg) parsePlot(payload.msg);
 });
 
+// Recibir datos ADC
+socket.on("adc_data", ({ deviceId, data }) => {
+  if (!currentDevice || deviceId !== currentDevice) return;
+  parseADCData(data);
+});
+
 function sendData(e) {
   e.preventDefault();
   const v = document.getElementById("inputData").value.trim();
@@ -362,6 +459,16 @@ function sendData(e) {
   socket.emit("send_command", { deviceId: id, command: v });
   log(`📤 Enviado a ${id}: ${v}`);
   document.getElementById("inputData").value = "";
+}
+
+function sendCommand(cmd) {
+  const id = document.getElementById("deviceId").value.trim();
+  if (!id) {
+    log("⚠️ Conecta primero a un dispositivo");
+    return;
+  }
+  socket.emit("send_command", { deviceId: id, command: cmd });
+  log(`📤 Comando: ${cmd}`);
 }
 
 function log(msg) {
@@ -486,8 +593,75 @@ const chartNyquist = new Chart(document.getElementById('chartNyquist'), {
   }
 });
 
+// ADC Chart - Dual Channel
+const chartADC = new Chart(document.getElementById('chartADC'), {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [
+      {
+        label: 'Canal 1',
+        data: [],
+        borderColor: '#667eea',
+        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+        borderWidth: 2.5,
+        fill: false,
+        tension: 0.1,
+        pointRadius: 0,
+        yAxisID: 'y'
+      },
+      {
+        label: 'Canal 2',
+        data: [],
+        borderColor: '#f5576c',
+        backgroundColor: 'rgba(245, 87, 108, 0.1)',
+        borderWidth: 2.5,
+        fill: false,
+        tension: 0.1,
+        pointRadius: 0,
+        yAxisID: 'y1'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: true, labels: { usePointStyle: true, padding: 15 } }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Muestras', font: { size: 14, weight: 600 } },
+        grid: { color: 'rgba(0,0,0,0.05)' }
+      },
+      y: {
+        position: 'left',
+        title: { display: true, text: 'Canal 1 (0-4095)', font: { size: 12, weight: 600, color: '#667eea' } },
+        min: 0,
+        max: 4095,
+        grid: { color: 'rgba(102, 126, 234, 0.1)' }
+      },
+      y1: {
+        position: 'right',
+        title: { display: true, text: 'Canal 2 (0-4095)', font: { size: 12, weight: 600, color: '#f5576c' } },
+        min: 0,
+        max: 4095,
+        grid: { drawOnChartArea: false }
+      }
+    }
+  }
+});
+
 let latestMagnitude = NaN;
 let latestPhase = NaN;
+
+// Variables ADC
+let adcBuffer = { ch1: [], ch2: [] };
+let sampleCounter = 0;
+let triggerArmed = false;
+let triggerTriggered = false;
+const MAX_ADC_SAMPLES = 500;
 
 function parsePlot(msg) {
   const m = msg.match(/^([-+]?[0-9]*\.?[0-9]+);([0-9]*\.?[0-9]+)([AF])$/);
@@ -523,7 +697,8 @@ function downloadAllCharts() {
   const charts = [
     { chart: chartMag, name: 'magnitud.png' },
     { chart: chartPhase, name: 'fase.png' },
-    { chart: chartNyquist, name: 'nyquist.png' }
+    { chart: chartNyquist, name: 'nyquist.png' },
+    { chart: chartADC, name: 'adc.png' }
   ];
   charts.forEach(c => {
     const link = document.createElement('a');
@@ -583,6 +758,82 @@ function stopSweep() {
     return;
   }
   sweepAbort = true;
+}
+
+// ==========================================================
+// FUNCIONES ADC - OSCILOSCOPIO
+// ==========================================================
+function parseADCData(data) {
+  // Formato: CH1:1234,CH2:5678
+  const match = data.match(/CH1:(\d+),CH2:(\d+)/);
+  if (!match) return;
+
+  const ch1 = parseInt(match[1]);
+  const ch2 = parseInt(match[2]);
+
+  adcBuffer.ch1.push(ch1);
+  adcBuffer.ch2.push(ch2);
+  sampleCounter++;
+
+  // Aplicar trigger
+  const triggerChannel = document.getElementById('triggerChannel').value;
+  const triggerLevel = parseInt(document.getElementById('triggerLevel').value);
+  const triggerMode = document.getElementById('triggerMode').value;
+
+  let triggerValue = (triggerChannel === 'ch1') ? ch1 : (triggerChannel === 'ch2') ? ch2 : null;
+
+  // Lógica de trigger
+  if (triggerChannel !== 'none' && triggerValue !== null) {
+    if (!triggerArmed) {
+      if (triggerMode === 'rising' && triggerValue > triggerLevel) {
+        triggerArmed = true;
+        triggerTriggered = false;
+      } else if (triggerMode === 'falling' && triggerValue < triggerLevel) {
+        triggerArmed = true;
+        triggerTriggered = false;
+      }
+    } else if (!triggerTriggered) {
+      if (triggerMode === 'rising' && triggerValue <= triggerLevel) {
+        triggerTriggered = true;
+      } else if (triggerMode === 'falling' && triggerValue >= triggerLevel) {
+        triggerTriggered = true;
+      }
+    }
+  } else {
+    triggerArmed = true;
+    triggerTriggered = true;
+  }
+
+  // Actualizar gráfico si hay suficientes muestras o si está trigado
+  if (adcBuffer.ch1.length >= MAX_ADC_SAMPLES && triggerTriggered) {
+    updateADCChart();
+    adcBuffer.ch1 = [];
+    adcBuffer.ch2 = [];
+    sampleCounter = 0;
+    triggerArmed = false;
+    triggerTriggered = false;
+  }
+}
+
+function updateADCChart() {
+  chartADC.data.labels = [];
+  for (let i = 0; i < adcBuffer.ch1.length; i++) {
+    chartADC.data.labels.push(i.toString());
+  }
+
+  chartADC.data.datasets[0].data = adcBuffer.ch1;
+  chartADC.data.datasets[1].data = adcBuffer.ch2;
+  chartADC.update('none');
+}
+
+function clearADCChart() {
+  chartADC.data.labels = [];
+  chartADC.data.datasets[0].data = [];
+  chartADC.data.datasets[1].data = [];
+  chartADC.update('none');
+  adcBuffer.ch1 = [];
+  adcBuffer.ch2 = [];
+  sampleCounter = 0;
 }
 </script>
 
