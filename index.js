@@ -7,6 +7,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const mqtt = require('mqtt');
 const path = require('path');
+const fs = require('fs');
 
 // Configuración
 const app = express();
@@ -142,12 +143,33 @@ io.on('connection', (socket) => {
 });
 
 // ===================================
-// EXPRESS STATIC FILES
+// EXPRESS - SERVIR HTML DESDE RAÍZ
 // ===================================
-app.use(express.static(path.join(__dirname, 'public')));
 
+// Ruta raíz - Servir index.html desde la raíz del proyecto
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  const indexPath = path.join(__dirname, 'index.html');
+  
+  // Verificar si el archivo existe
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).send('❌ index.html no encontrado');
+  }
+});
+
+// Servir archivos estáticos (CSS, JS, etc.) desde la raíz
+app.use(express.static(__dirname));
+
+// Ruta catch-all - Envía index.html para rutas no encontradas
+app.get('*', (req, res) => {
+  const indexPath = path.join(__dirname, 'index.html');
+  
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).send('❌ index.html no encontrado');
+  }
 });
 
 // ===================================
