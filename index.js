@@ -65,16 +65,25 @@ function connectMQTT() {
   mqttClient.on('message', (topic, message) => {
     console.log(`📨 Mensaje recibido en ${topic}: ${message.toString()}`);
     
-    // Extraer deviceId del topic (ej: "devices/ESP32_A1/data" -> "ESP32_A1")
+    // Extraer deviceId del topic (ej: "dispositivos/ESP32_A1/datos" -> "ESP32_A1")
     const parts = topic.split('/');
     if (parts.length >= 2) {
       const deviceId = parts[1];
+      const topicType = parts[2]; // datos, comando, adc, etc.
       
-      // Emitir a todos los clientes conectados a ese dispositivo
-      io.to(deviceId).emit('update_data', {
-        deviceId: deviceId,
-        payload: message.toString()
-      });
+      // Emitir según el tipo de topic
+      if (topicType === 'adc') {
+        io.to(deviceId).emit('adc_data', {
+          deviceId: deviceId,
+          data: message.toString()
+        });
+      } else {
+        // Otros tópicos (datos, status, etc.)
+        io.to(deviceId).emit('update_data', {
+          deviceId: deviceId,
+          payload: message.toString()
+        });
+      }
     }
   });
 }
@@ -98,13 +107,15 @@ io.on('connection', (socket) => {
   // Conectar dispositivo (suscribirse al topic MQTT)
   socket.on('connect_device', (deviceId) => {
     if (mqttClient && mqttClient.connected) {
-      const topic = `dispositivos/${deviceId}/datos`;
-      mqttClient.subscribe(topic, (err) => {
+      const topicDatos = `dispositivos/${deviceId}/datos`;
+      const topicADC = `dispositivos/${deviceId}/adc`;
+      
+      mqttClient.subscribe([topicDatos, topicADC], (err) => {
         if (err) {
-          console.error(`❌ Error subscribiendo a ${topic}:`, err);
-          socket.emit('error', `No se pudo suscribir a ${topic}`);
+          console.error(`❌ Error subscribiendo:`, err);
+          socket.emit('error', `No se pudo suscribir a los tópicos`);
         } else {
-          console.log(`📡 Suscrito a: ${topic}`);
+          console.log(`📡 Suscrito a: ${topicDatos} y ${topicADC}`);
           socket.emit('status', `Conectado a ${deviceId}`);
         }
       });
