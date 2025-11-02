@@ -384,7 +384,7 @@
     </div>
   </div>
   <div class="navbar-actions">
-    <button onclick="downloadAllCharts()">Descargar Gráficos</button>
+    <button id="downloadBtn">Descargar Gráficos</button>
   </div>
 </div>
 
@@ -558,13 +558,37 @@ let currentDevice = null;
 
 // Inicializar la navegación del menú
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM Cargado - Inicializando navegación');
+  
+  // Botón de descarga
+  const downloadBtn = document.getElementById('downloadBtn');
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', downloadAllCharts);
+  }
+  
+  // Menú de herramientas
   const menuItems = document.querySelectorAll('.menu-item');
+  console.log('Menu items encontrados:', menuItems.length);
+  
   menuItems.forEach(item => {
     item.addEventListener('click', function() {
       const sectionId = this.getAttribute('data-section');
+      console.log('Click en menú:', sectionId);
       showSection(sectionId);
     });
   });
+  
+  // Botones de formularios
+  const connectBtn = document.querySelector('button[type="button"]');
+  if (connectBtn && connectBtn.textContent.includes('Conectar')) {
+    connectBtn.addEventListener('click', connectDevice);
+  }
+  
+  // Formulario de envío
+  const sendForm = document.querySelector('form');
+  if (sendForm) {
+    sendForm.addEventListener('submit', sendData);
+  }
 });
 
 function showSection(sectionId) {
