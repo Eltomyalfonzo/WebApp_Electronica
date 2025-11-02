@@ -557,11 +557,20 @@ const socket = io();
 let currentDevice = null;
 
 function showSection(sectionId) {
+  // Remover clase active de todas las secciones y menús
   document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
   
+  // Activar la sección seleccionada
   document.getElementById(sectionId).classList.add('active');
-  event.target.classList.add('active');
+  
+  // Activar el menú clickeado
+  const menuItems = document.querySelectorAll('.menu-item');
+  menuItems.forEach(item => {
+    if (item.getAttribute('onclick').includes(sectionId)) {
+      item.classList.add('active');
+    }
+  });
 }
 
 function connectDevice() {
