@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FRA_Monitor</title>
+  <title>FRA Monitor - UTN FRSF</title>
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -15,237 +15,293 @@
     }
 
     body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Roboto', sans-serif;
+      background: #f5f7fa;
+      color: #2c3e50;
       min-height: 100vh;
-      color: #1a1a1a;
     }
 
     .navbar {
-      background: rgba(15, 23, 42, 0.95);
-      backdrop-filter: blur(10px);
-      padding: 1.2rem 2rem;
+      background: #1a2332;
+      padding: 1rem 2rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      border-bottom: 2px solid #667eea;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border-bottom: 3px solid #2c5aa0;
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo-utn {
+      width: 50px;
+      height: 50px;
+      background: white;
+      border-radius: 4px;
+      padding: 4px;
     }
 
     .navbar h1 {
-      font-size: 1.8rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: 1px;
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: white;
+      letter-spacing: 0.5px;
     }
 
-    .navbar button {
-      background: linear-gradient(135deg, #667eea, #764ba2);
+    .navbar-actions button {
+      background: #2c5aa0;
       color: white;
       border: none;
-      padding: 0.7rem 1.5rem;
-      border-radius: 8px;
+      padding: 0.6rem 1.2rem;
+      border-radius: 4px;
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 500;
+      font-size: 0.9rem;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     }
 
-    .navbar button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    .navbar-actions button:hover {
+      background: #3d6fb8;
+      box-shadow: 0 2px 8px rgba(44, 90, 160, 0.3);
     }
 
-    .container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2rem;
-      padding: 2rem;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    .chart-card {
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 76px;
+      width: 250px;
+      height: calc(100vh - 76px);
       background: white;
-      border-radius: 16px;
-      padding: 1.5rem;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
+      border-right: 1px solid #e1e8ed;
+      padding: 1.5rem 0;
+      overflow-y: auto;
+      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
     }
 
-    .chart-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
-    }
-
-    .chart-card h3 {
-      color: #667eea;
-      font-size: 1.1rem;
-      margin-bottom: 1rem;
+    .sidebar h3 {
+      padding: 0 1.5rem;
+      color: #1a2332;
+      font-size: 0.9rem;
       font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 1rem;
     }
 
-    canvas {
-      width: 100% !important;
-      height: 300px !important;
+    .menu-item {
+      padding: 0.9rem 1.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: #5a6c7d;
+      font-weight: 400;
+      border-left: 3px solid transparent;
+    }
+
+    .menu-item:hover {
+      background: #f8f9fa;
+      color: #2c5aa0;
+      border-left-color: #2c5aa0;
+    }
+
+    .menu-item.active {
+      background: #e8f0f8;
+      color: #2c5aa0;
+      border-left-color: #2c5aa0;
+      font-weight: 500;
+    }
+
+    .main-content {
+      margin-left: 250px;
+      padding: 2rem;
+      min-height: calc(100vh - 76px);
+    }
+
+    .content-section {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .content-section.active {
       display: block;
     }
 
-    .nyquist-section {
-      grid-column: 1 / -1;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
       background: white;
-      border-radius: 16px;
+      border-radius: 8px;
       padding: 1.5rem;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    }
-
-    .nyquist-section h3 {
-      color: #667eea;
-      font-size: 1.1rem;
-      margin-bottom: 1rem;
-      font-weight: 600;
-    }
-
-    .form-section {
-      grid-column: 1 / -1;
-      background: white;
-      border-radius: 16px;
-      padding: 2rem;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    }
-
-    form {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       margin-bottom: 1.5rem;
     }
 
-    input[type="text"],
-    input[type="number"],
-    select {
-      padding: 0.7rem 1rem;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-family: 'Inter', sans-serif;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-    }
-
-    input[type="text"]:focus,
-    input[type="number"]:focus,
-    select:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    button[type="button"],
-    button[type="submit"],
-    button {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      border: none;
-      padding: 0.7rem 1.5rem;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      font-family: 'Inter', sans-serif;
-      font-size: 1rem;
-    }
-
-    button[type="button"]:hover,
-    button[type="submit"]:hover,
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    }
-
-    #log {
-      background: #f5f5f5;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 1rem;
-      height: 150px;
-      overflow-y: auto;
-      font-family: 'Courier New', monospace;
-      font-size: 0.9rem;
-      color: #333;
-      line-height: 1.5;
-    }
-
-    .sweep-section {
-      grid-column: 1 / -1;
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-      border: 2px solid #667eea;
-      border-radius: 16px;
-      padding: 2rem;
-    }
-
-    .sweep-section h3 {
-      color: #667eea;
-      margin-bottom: 1.5rem;
+    .card h2 {
+      color: #1a2332;
       font-size: 1.3rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 2px solid #e1e8ed;
     }
 
-    .sweep-controls {
+    .card p {
+      line-height: 1.6;
+      color: #5a6c7d;
+      margin-bottom: 0.8rem;
+    }
+
+    .info-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .info-item {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 6px;
+      border-left: 3px solid #2c5aa0;
+    }
+
+    .info-item h4 {
+      color: #1a2332;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .info-item p {
+      color: #5a6c7d;
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 1.5rem;
       margin-bottom: 1.5rem;
     }
 
-    .sweep-controls label {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      font-weight: 600;
-      color: #333;
-    }
-
-    .sweep-controls input {
-      padding: 0.7rem;
-      border: 2px solid #e0e0e0;
+    .chart-container {
+      background: white;
       border-radius: 8px;
-      font-size: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
-    .sweep-buttons {
+    .chart-container h3 {
+      color: #1a2332;
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+
+    .chart-container canvas {
+      width: 100% !important;
+      height: 300px !important;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      color: #1a2332;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.7rem;
+      border: 1px solid #d1d9e0;
+      border-radius: 4px;
+      font-family: 'Roboto', sans-serif;
+      font-size: 0.9rem;
+      transition: border-color 0.2s ease;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: #2c5aa0;
+      box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+    }
+
+    .form-inline {
       display: flex;
       gap: 1rem;
-      justify-content: center;
+      align-items: flex-end;
+      flex-wrap: wrap;
     }
 
-    .sweep-buttons button {
-      padding: 0.9rem 2rem;
-      font-size: 1rem;
-      font-weight: 600;
+    .form-inline .form-group {
+      flex: 1;
+      min-width: 200px;
+      margin-bottom: 0;
     }
 
-    .stop-btn {
-      background: linear-gradient(135deg, #f093fb, #f5576c) !important;
+    .btn {
+      background: #2c5aa0;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
     }
 
-    .stop-btn:hover {
-      box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4) !important;
+    .btn:hover {
+      background: #3d6fb8;
+      box-shadow: 0 2px 8px rgba(44, 90, 160, 0.3);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .console-box {
+      background: #1a2332;
+      border: 1px solid #2c3e50;
+      border-radius: 4px;
+      padding: 1rem;
+      height: 150px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      color: #a8b8cc;
+      line-height: 1.5;
     }
 
     .adc-controls {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(4, 1fr);
       gap: 1rem;
       margin-bottom: 1.5rem;
-    }
-
-    .adc-controls button {
-      padding: 0.9rem 1.5rem;
-      font-weight: 600;
-      font-size: 0.95rem;
     }
 
     .adc-trigger-controls {
@@ -253,29 +309,43 @@
       gap: 1rem;
       margin-bottom: 1.5rem;
       flex-wrap: wrap;
-      align-items: center;
+      align-items: flex-end;
     }
 
-    .adc-trigger-controls label {
+    .adc-trigger-controls .form-group {
+      margin-bottom: 0;
+    }
+
+    .full-width-chart {
+      grid-column: 1 / -1;
+    }
+
+    .download-options {
       display: flex;
-      gap: 0.5rem;
-      align-items: center;
-      font-weight: 600;
-      color: #333;
-    }
-
-    .adc-trigger-controls select,
-    .adc-trigger-controls input {
-      padding: 0.5rem;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-family: 'Inter', sans-serif;
+      gap: 1rem;
+      margin-top: 1rem;
     }
 
     @media (max-width: 1024px) {
-      .container {
+      .sidebar {
+        transform: translateX(-100%);
+        z-index: 1000;
+      }
+
+      .sidebar.mobile-open {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0;
+      }
+
+      .charts-grid {
         grid-template-columns: 1fr;
+      }
+
+      .adc-controls {
+        grid-template-columns: 1fr 1fr;
       }
     }
 
@@ -285,36 +355,16 @@
         gap: 1rem;
       }
 
-      .navbar h1 {
-        font-size: 1.4rem;
-      }
-
-      .container {
-        padding: 1rem;
-        gap: 1rem;
-      }
-
-      form {
+      .form-inline {
         flex-direction: column;
       }
 
-      input[type="text"],
-      input[type="number"],
-      button {
+      .form-inline .form-group {
         width: 100%;
       }
 
-      .sweep-controls {
-        grid-template-columns: 1fr;
-      }
-
       .adc-controls {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .adc-trigger-controls {
-        flex-direction: column;
-        align-items: flex-start;
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -322,106 +372,182 @@
 <body>
 
 <div class="navbar">
-  <h1>⚡ FRA_Monitor</h1>
-  <button onclick="downloadAllCharts()">📥 Descargar Gráficos</button>
+  <div class="navbar-brand">
+    <svg class="logo-utn" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" fill="#1a2332"/>
+      <text x="50" y="55" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="white" text-anchor="middle">UTN</text>
+      <text x="50" y="75" font-family="Arial, sans-serif" font-size="12" fill="#2c5aa0" text-anchor="middle">FRSF</text>
+    </svg>
+    <div>
+      <h1>FRA Monitor</h1>
+      <p style="font-size: 0.8rem; color: #8899a6; margin: 0;">Analizador de Respuesta en Frecuencia</p>
+    </div>
+  </div>
+  <div class="navbar-actions">
+    <button onclick="downloadAllCharts()">Descargar Gráficos</button>
+  </div>
 </div>
 
-<div class="container">
-  <!-- Magnitude Chart -->
-  <div class="chart-card">
-    <h3>📊 Magnitud [dB]</h3>
-    <canvas id="chartMag"></canvas>
-  </div>
+<div class="sidebar">
+  <h3>Herramientas</h3>
+  <div class="menu-item active" onclick="showSection('inicio')">Inicio</div>
+  <div class="menu-item" onclick="showSection('bode')">Diagrama de Bode</div>
+  <div class="menu-item" onclick="showSection('nyquist')">Diagrama de Nyquist</div>
+  <div class="menu-item" onclick="showSection('osciloscopio')">Osciloscopio</div>
+  <div class="menu-item" onclick="showSection('conexion')">Conexión y Control</div>
+</div>
 
-  <!-- Phase Chart -->
-  <div class="chart-card">
-    <h3>📐 Fase [rad]</h3>
-    <canvas id="chartPhase"></canvas>
-  </div>
+<div class="main-content">
+  <!-- SECCIÓN INICIO -->
+  <div class="content-section active" id="inicio">
+    <div class="card">
+      <h2>Bienvenido al FRA Monitor</h2>
+      <p>Sistema de monitoreo y análisis de respuesta en frecuencia para dispositivos embebidos, desarrollado en la <strong>Universidad Tecnológica Nacional - Facultad Regional San Francisco</strong>.</p>
+      
+      <div class="info-grid">
+        <div class="info-item">
+          <h4>Análisis de Bode</h4>
+          <p>Visualiza la magnitud y fase de la respuesta en frecuencia del sistema bajo prueba.</p>
+        </div>
+        <div class="info-item">
+          <h4>Diagrama de Nyquist</h4>
+          <p>Representa la respuesta en frecuencia en el plano complejo para análisis de estabilidad.</p>
+        </div>
+        <div class="info-item">
+          <h4>Osciloscopio Digital</h4>
+          <p>Captura y visualiza señales analógicas de dos canales en tiempo real con trigger configurable.</p>
+        </div>
+        <div class="info-item">
+          <h4>Conexión MQTT</h4>
+          <p>Comunicación en tiempo real con dispositivos ESP32 a través de protocolo MQTT.</p>
+        </div>
+      </div>
+    </div>
 
-  <!-- Nyquist Plot -->
-  <div class="nyquist-section">
-    <h3>🔄 Diagrama de Nyquist</h3>
-    <canvas id="chartNyquist"></canvas>
-  </div>
-
-  <!-- Connection & Command Form -->
-  <div class="form-section">
-    <h3>🔌 Conexión y Control - FRA</h3>
-    <form onsubmit="sendData(event)">
-      <input id="deviceId" type="text" placeholder="ID del dispositivo (ej: ESP32_A1)" required>
-      <button type="button" onclick="connectDevice()">Conectar</button>
-      <input id="inputData" type="text" placeholder="-10;1000A o 1.57;1000F o S1000">
-      <button type="submit">Enviar</button>
-    </form>
-    
-    <h4 style="color: #667eea; margin-bottom: 1rem; font-size: 0.9rem;">📋 Consola:</h4>
-    <pre id="log"></pre>
-  </div>
-
-  <!-- ADC Channel Controls -->
-  <div class="form-section">
-    <h3>📊 Control de Canales ADC</h3>
-    <div class="adc-controls">
-      <button onclick="sendCommand('CH1ON')" style="background: linear-gradient(135deg, #667eea, #764ba2);">✅ CH1 ON</button>
-      <button onclick="sendCommand('CH1OFF')" style="background: linear-gradient(135deg, #f093fb, #f5576c);">❌ CH1 OFF</button>
-      <button onclick="sendCommand('CH2ON')" style="background: linear-gradient(135deg, #667eea, #764ba2);">✅ CH2 ON</button>
-      <button onclick="sendCommand('CH2OFF')" style="background: linear-gradient(135deg, #f093fb, #f5576c);">❌ CH2 OFF</button>
+    <div class="card">
+      <h2>Descripción del Proyecto</h2>
+      <p>El FRA Monitor es una herramienta de análisis de sistemas de control y circuitos electrónicos que permite caracterizar la respuesta en frecuencia de forma remota. Utiliza tecnología web moderna para proporcionar una interfaz intuitiva y profesional.</p>
+      
+      <p><strong>Características principales:</strong></p>
+      <ul style="padding-left: 1.5rem; line-height: 1.8; color: #5a6c7d;">
+        <li>Análisis de respuesta en frecuencia (Bode y Nyquist)</li>
+        <li>Osciloscopio digital de dos canales con trigger</li>
+        <li>Comunicación MQTT con dispositivos ESP32</li>
+        <li>Exportación de datos en formato PNG y CSV</li>
+        <li>Interfaz web responsive y profesional</li>
+      </ul>
     </div>
   </div>
 
-  <!-- ADC Chart with Trigger Controls -->
-  <div class="form-section">
-    <h3>📈 Osciloscopio - ADC Dual Channel</h3>
-    <div class="adc-trigger-controls">
-      <label>
-        Trigger:
-        <select id="triggerChannel">
-          <option value="none">Deshabilitado</option>
-          <option value="ch1">Canal 1</option>
-          <option value="ch2">Canal 2</option>
-        </select>
-      </label>
-      <label>
-        Nivel: 
-        <input id="triggerLevel" type="number" value="2048" min="0" max="4095">
-      </label>
-      <label>
-        Modo: 
-        <select id="triggerMode">
-          <option value="rising">Flanco Ascendente</option>
-          <option value="falling">Flanco Descendente</option>
-        </select>
-      </label>
-      <button onclick="clearADCChart()" style="background: linear-gradient(135deg, #f093fb, #f5576c);">🗑️ Limpiar</button>
+  <!-- SECCIÓN BODE -->
+  <div class="content-section" id="bode">
+    <div class="card">
+      <h2>Diagrama de Bode</h2>
+      <div class="charts-grid">
+        <div class="chart-container">
+          <h3>Magnitud [dB]</h3>
+          <canvas id="chartMag"></canvas>
+          <div class="download-options">
+            <button class="btn btn-secondary" onclick="downloadChart('chartMag', 'magnitud.png')">Descargar PNG</button>
+            <button class="btn btn-secondary" onclick="downloadBodeCSV('magnitude')">Descargar CSV</button>
+          </div>
+        </div>
+        <div class="chart-container">
+          <h3>Fase [rad]</h3>
+          <canvas id="chartPhase"></canvas>
+          <div class="download-options">
+            <button class="btn btn-secondary" onclick="downloadChart('chartPhase', 'fase.png')">Descargar PNG</button>
+            <button class="btn btn-secondary" onclick="downloadBodeCSV('phase')">Descargar CSV</button>
+          </div>
+        </div>
+      </div>
     </div>
-    <canvas id="chartADC"></canvas>
   </div>
 
-  <!-- Automatic Frequency Sweep -->
-  <div class="sweep-section">
-    <h3>⚙️ Barrido de Frecuencia Automático</h3>
-    <div class="sweep-controls">
-      <label>
-        Inicio [Hz]:
-        <input id="startFreq" type="number" value="100" step="1" min="1">
-      </label>
-      <label>
-        Fin [Hz]:
-        <input id="endFreq" type="number" value="1000" step="1" min="1">
-      </label>
-      <label>
-        Paso [Hz]:
-        <input id="stepFreq" type="number" value="100" step="1" min="1">
-      </label>
-      <label>
-        Espera [s]:
-        <input id="waitTime" type="number" value="1" step="0.1" min="0.1">
-      </label>
+  <!-- SECCIÓN NYQUIST -->
+  <div class="content-section" id="nyquist">
+    <div class="card">
+      <h2>Diagrama de Nyquist</h2>
+      <div class="chart-container full-width-chart">
+        <canvas id="chartNyquist"></canvas>
+        <div class="download-options">
+          <button class="btn btn-secondary" onclick="downloadChart('chartNyquist', 'nyquist.png')">Descargar PNG</button>
+          <button class="btn btn-secondary" onclick="downloadNyquistCSV()">Descargar CSV</button>
+        </div>
+      </div>
     </div>
-    <div class="sweep-buttons">
-      <button onclick="startSweep()">▶️ Iniciar Barrido</button>
-      <button onclick="stopSweep()" class="stop-btn">⏹️ Detener</button>
+  </div>
+
+  <!-- SECCIÓN OSCILOSCOPIO -->
+  <div class="content-section" id="osciloscopio">
+    <div class="card">
+      <h2>Osciloscopio Digital</h2>
+      
+      <div class="adc-controls">
+        <button class="btn" onclick="sendCommand('CH1ON')">Canal 1 ON</button>
+        <button class="btn btn-danger" onclick="sendCommand('CH1OFF')">Canal 1 OFF</button>
+        <button class="btn" onclick="sendCommand('CH2ON')">Canal 2 ON</button>
+        <button class="btn btn-danger" onclick="sendCommand('CH2OFF')">Canal 2 OFF</button>
+      </div>
+
+      <div class="adc-trigger-controls">
+        <div class="form-group">
+          <label>Trigger</label>
+          <select id="triggerChannel" class="form-control">
+            <option value="none">Deshabilitado</option>
+            <option value="ch1">Canal 1</option>
+            <option value="ch2">Canal 2</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nivel</label>
+          <input id="triggerLevel" type="number" class="form-control" value="2048" min="0" max="4095">
+        </div>
+        <div class="form-group">
+          <label>Modo</label>
+          <select id="triggerMode" class="form-control">
+            <option value="rising">Flanco Ascendente</option>
+            <option value="falling">Flanco Descendente</option>
+          </select>
+        </div>
+        <button class="btn btn-secondary" onclick="clearADCChart()">Limpiar</button>
+      </div>
+
+      <div class="chart-container">
+        <canvas id="chartADC"></canvas>
+        <div class="download-options">
+          <button class="btn btn-secondary" onclick="downloadChart('chartADC', 'osciloscopio.png')">Descargar PNG</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN CONEXIÓN -->
+  <div class="content-section" id="conexion">
+    <div class="card">
+      <h2>Conexión y Control</h2>
+      <form onsubmit="sendData(event)">
+        <div class="form-inline">
+          <div class="form-group">
+            <label>ID del Dispositivo</label>
+            <input id="deviceId" type="text" class="form-control" placeholder="ESP32_A1" required>
+          </div>
+          <button type="button" class="btn" onclick="connectDevice()">Conectar</button>
+        </div>
+
+        <div class="form-inline" style="margin-top: 1rem;">
+          <div class="form-group">
+            <label>Comando</label>
+            <input id="inputData" type="text" class="form-control" placeholder="-10;1000A o 1.57;1000F o S1000">
+          </div>
+          <button type="submit" class="btn">Enviar</button>
+        </div>
+      </form>
+      
+      <div class="form-group" style="margin-top: 1.5rem;">
+        <label>Consola</label>
+        <pre id="log" class="console-box"></pre>
+      </div>
     </div>
   </div>
 </div>
@@ -430,13 +556,21 @@
 const socket = io();
 let currentDevice = null;
 
+function showSection(sectionId) {
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+  
+  document.getElementById(sectionId).classList.add('active');
+  event.target.classList.add('active');
+}
+
 function connectDevice() {
   const id = document.getElementById("deviceId").value.trim();
-  if (!id) return log("⚠️ Ingrese un ID de dispositivo.");
+  if (!id) return log("Ingrese un ID de dispositivo.");
   currentDevice = id;
   socket.emit("join_device", id);
   socket.emit("connect_device", id);
-  log(`📡 Intentando conectar con ${id}...`);
+  log(`Intentando conectar con ${id}...`);
 }
 
 socket.on("update_data", ({ deviceId, payload }) => {
@@ -445,7 +579,6 @@ socket.on("update_data", ({ deviceId, payload }) => {
   else if (payload.msg) parsePlot(payload.msg);
 });
 
-// Recibir datos ADC
 socket.on("adc_data", ({ deviceId, data }) => {
   if (!currentDevice || deviceId !== currentDevice) return;
   parseADCData(data);
@@ -457,18 +590,18 @@ function sendData(e) {
   const id = document.getElementById("deviceId").value.trim();
   if (!v || !id) return;
   socket.emit("send_command", { deviceId: id, command: v });
-  log(`📤 Enviado a ${id}: ${v}`);
+  log(`Enviado a ${id}: ${v}`);
   document.getElementById("inputData").value = "";
 }
 
 function sendCommand(cmd) {
   const id = document.getElementById("deviceId").value.trim();
   if (!id) {
-    log("⚠️ Conecta primero a un dispositivo");
+    log("Conecta primero a un dispositivo");
     return;
   }
   socket.emit("send_command", { deviceId: id, command: cmd });
-  log(`📤 Comando: ${cmd}`);
+  log(`Comando: ${cmd}`);
 }
 
 function log(msg) {
@@ -477,10 +610,9 @@ function log(msg) {
   logEl.scrollTop = logEl.scrollHeight;
 }
 
-// Charts Configuration
-Chart.defaults.font.family = 'Inter';
-Chart.defaults.font.size = 14;
-Chart.defaults.color = '#666';
+Chart.defaults.font.family = 'Roboto';
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#5a6c7d';
 
 const chartMag = new Chart(document.getElementById('chartMag'), {
   type: 'line',
@@ -489,31 +621,29 @@ const chartMag = new Chart(document.getElementById('chartMag'), {
     datasets: [{
       label: 'Magnitud [dB]',
       data: [],
-      borderColor: '#667eea',
-      backgroundColor: 'rgba(102, 126, 234, 0.1)',
-      borderWidth: 2.5,
+      borderColor: '#2c5aa0',
+      backgroundColor: 'rgba(44, 90, 160, 0.1)',
+      borderWidth: 2,
       fill: true,
-      tension: 0.4,
-      pointRadius: 4,
-      pointBackgroundColor: '#667eea',
-      pointBorderColor: 'white',
-      pointBorderWidth: 2
+      tension: 0.3,
+      pointRadius: 3,
+      pointBackgroundColor: '#2c5aa0'
     }]
   },
   options: {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: true, labels: { usePointStyle: true, padding: 15 } }
+      legend: { display: true }
     },
     scales: {
       x: {
         type: 'logarithmic',
-        title: { display: true, text: 'Frecuencia [rad/s]', font: { size: 14, weight: 600 } },
+        title: { display: true, text: 'Frecuencia [rad/s]' },
         grid: { color: 'rgba(0,0,0,0.05)' }
       },
       y: {
-        title: { display: true, text: 'Magnitud [dB]', font: { size: 14, weight: 600 } },
+        title: { display: true, text: 'Magnitud [dB]' },
         grid: { color: 'rgba(0,0,0,0.05)' }
       }
     }
@@ -527,31 +657,29 @@ const chartPhase = new Chart(document.getElementById('chartPhase'), {
     datasets: [{
       label: 'Fase [rad]',
       data: [],
-      borderColor: '#f5576c',
-      backgroundColor: 'rgba(245, 87, 108, 0.1)',
-      borderWidth: 2.5,
+      borderColor: '#2c5aa0',
+      backgroundColor: 'rgba(44, 90, 160, 0.1)',
+      borderWidth: 2,
       fill: true,
-      tension: 0.4,
-      pointRadius: 4,
-      pointBackgroundColor: '#f5576c',
-      pointBorderColor: 'white',
-      pointBorderWidth: 2
+      tension: 0.3,
+      pointRadius: 3,
+      pointBackgroundColor: '#2c5aa0'
     }]
   },
   options: {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: true, labels: { usePointStyle: true, padding: 15 } }
+      legend: { display: true }
     },
     scales: {
       x: {
         type: 'logarithmic',
-        title: { display: true, text: 'Frecuencia [rad/s]', font: { size: 14, weight: 600 } },
+        title: { display: true, text: 'Frecuencia [rad/s]' },
         grid: { color: 'rgba(0,0,0,0.05)' }
       },
       y: {
-        title: { display: true, text: 'Fase [rad]', font: { size: 14, weight: 600 } },
+        title: { display: true, text: 'Fase [rad]' },
         grid: { color: 'rgba(0,0,0,0.05)' }
       }
     }
@@ -564,36 +692,34 @@ const chartNyquist = new Chart(document.getElementById('chartNyquist'), {
     datasets: [{
       label: 'Nyquist',
       data: [],
-      borderColor: '#764ba2',
-      backgroundColor: 'rgba(118, 75, 162, 0.5)',
-      borderWidth: 2.5,
-      pointRadius: 5,
-      pointBackgroundColor: '#764ba2',
+      borderColor: '#2c5aa0',
+      backgroundColor: 'rgba(44, 90, 160, 0.5)',
+      borderWidth: 2,
+      pointRadius: 4,
       showLine: true,
       fill: false,
-      tension: 0.3
+      tension: 0.2
     }]
   },
   options: {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: true, labels: { usePointStyle: true, padding: 15 } }
+      legend: { display: true }
     },
     scales: {
       x: {
-        title: { display: true, text: 'Re', font: { size: 14, weight: 600 } },
+        title: { display: true, text: 'Re' },
         grid: { color: 'rgba(0,0,0,0.05)' }
       },
       y: {
-        title: { display: true, text: 'Im', font: { size: 14, weight: 600 } },
+        title: { display: true, text: 'Im' },
         grid: { color: 'rgba(0,0,0,0.05)' }
       }
     }
   }
 });
 
-// ADC Chart - Dual Channel
 const chartADC = new Chart(document.getElementById('chartADC'), {
   type: 'line',
   data: {
@@ -602,9 +728,9 @@ const chartADC = new Chart(document.getElementById('chartADC'), {
       {
         label: 'Canal 1',
         data: [],
-        borderColor: '#667eea',
-        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-        borderWidth: 2.5,
+        borderColor: '#2c5aa0',
+        backgroundColor: 'rgba(44, 90, 160, 0.1)',
+        borderWidth: 2,
         fill: false,
         tension: 0.1,
         pointRadius: 0,
@@ -613,9 +739,9 @@ const chartADC = new Chart(document.getElementById('chartADC'), {
       {
         label: 'Canal 2',
         data: [],
-        borderColor: '#f5576c',
-        backgroundColor: 'rgba(245, 87, 108, 0.1)',
-        borderWidth: 2.5,
+        borderColor: '#6c757d',
+        backgroundColor: 'rgba(108, 117, 125, 0.1)',
+        borderWidth: 2,
         fill: false,
         tension: 0.1,
         pointRadius: 0,
@@ -628,23 +754,23 @@ const chartADC = new Chart(document.getElementById('chartADC'), {
     maintainAspectRatio: false,
     interaction: { mode: 'index', intersect: false },
     plugins: {
-      legend: { display: true, labels: { usePointStyle: true, padding: 15 } }
+      legend: { display: true }
     },
     scales: {
       x: {
-        title: { display: true, text: 'Muestras', font: { size: 14, weight: 600 } },
+        title: { display: true, text: 'Muestras' },
         grid: { color: 'rgba(0,0,0,0.05)' }
       },
       y: {
         position: 'left',
-        title: { display: true, text: 'Canal 1 (0-4095)', font: { size: 12, weight: 600, color: '#667eea' } },
+        title: { display: true, text: 'Canal 1 (0-4095)' },
         min: 0,
         max: 4095,
-        grid: { color: 'rgba(102, 126, 234, 0.1)' }
+        grid: { color: 'rgba(44, 90, 160, 0.1)' }
       },
       y1: {
         position: 'right',
-        title: { display: true, text: 'Canal 2 (0-4095)', font: { size: 12, weight: 600, color: '#f5576c' } },
+        title: { display: true, text: 'Canal 2 (0-4095)' },
         min: 0,
         max: 4095,
         grid: { drawOnChartArea: false }
@@ -655,8 +781,6 @@ const chartADC = new Chart(document.getElementById('chartADC'), {
 
 let latestMagnitude = NaN;
 let latestPhase = NaN;
-
-// Variables ADC
 let adcBuffer = { ch1: [], ch2: [] };
 let sampleCounter = 0;
 let triggerArmed = false;
@@ -666,7 +790,7 @@ const MAX_ADC_SAMPLES = 500;
 function parsePlot(msg) {
   const m = msg.match(/^([-+]?[0-9]*\.?[0-9]+);([0-9]*\.?[0-9]+)([AF])$/);
   if (!m) {
-    log("⚠️ Formato inválido: " + msg);
+    log("Formato inválido: " + msg);
     return;
   }
   const val = parseFloat(m[1]), freq = parseFloat(m[2]), type = m[3];
@@ -693,78 +817,69 @@ function addNyquist(mag, phase) {
   chartNyquist.update('none');
 }
 
+function downloadChart(chartId, filename) {
+  const chart = eval(chartId);
+  const link = document.createElement('a');
+  link.href = chart.toBase64Image();
+  link.download = filename;
+  link.click();
+}
+
+function downloadBodeCSV(type) {
+  let csv = '';
+  let data, labels;
+  
+  if (type === 'magnitude') {
+    csv = 'Frecuencia [rad/s],Magnitud [dB]\n';
+    labels = chartMag.data.labels;
+    data = chartMag.data.datasets[0].data;
+  } else {
+    csv = 'Frecuencia [rad/s],Fase [rad]\n';
+    labels = chartPhase.data.labels;
+    data = chartPhase.data.datasets[0].data;
+  }
+  
+  for (let i = 0; i < labels.length; i++) {
+    csv += `${labels[i]},${data[i]}\n`;
+  }
+  
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = type === 'magnitude' ? 'magnitud.csv' : 'fase.csv';
+  link.click();
+  window.URL.revokeObjectURL(url);
+}
+
+function downloadNyquistCSV() {
+  let csv = 'Re,Im\n';
+  const data = chartNyquist.data.datasets[0].data;
+  
+  for (let i = 0; i < data.length; i++) {
+    csv += `${data[i].x},${data[i].y}\n`;
+  }
+  
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'nyquist.csv';
+  link.click();
+  window.URL.revokeObjectURL(url);
+}
+
 function downloadAllCharts() {
-  const charts = [
-    { chart: chartMag, name: 'magnitud.png' },
-    { chart: chartPhase, name: 'fase.png' },
-    { chart: chartNyquist, name: 'nyquist.png' },
-    { chart: chartADC, name: 'adc.png' }
-  ];
-  charts.forEach(c => {
-    const link = document.createElement('a');
-    link.href = c.chart.toBase64Image();
-    link.download = c.name;
-    link.click();
-  });
+  downloadChart('chartMag', 'magnitud.png');
+  downloadChart('chartPhase', 'fase.png');
+  downloadChart('chartNyquist', 'nyquist.png');
+  downloadChart('chartADC', 'osciloscopio.png');
+  downloadBodeCSV('magnitude');
+  downloadBodeCSV('phase');
+  downloadNyquistCSV();
 }
 
-let sweepRunning = false;
-let sweepAbort = false;
-
-async function startSweep() {
-  if (sweepRunning) {
-    log("⚠️ Barrido ya en ejecución.");
-    return;
-  }
-
-  const start = parseFloat(document.getElementById("startFreq").value);
-  const end = parseFloat(document.getElementById("endFreq").value);
-  const step = parseFloat(document.getElementById("stepFreq").value);
-  const waitSec = parseFloat(document.getElementById("waitTime").value);
-  const id = document.getElementById("deviceId").value.trim();
-
-  if (!id || isNaN(start) || isNaN(end) || isNaN(step) || isNaN(waitSec)) {
-    log("⚠️ Complete todos los campos correctamente.");
-    return;
-  }
-
-  if (end <= start || step <= 0) {
-    log("⚠️ Valores inválidos: fin debe ser > inicio y paso > 0.");
-    return;
-  }
-
-  sweepRunning = true;
-  sweepAbort = false;
-  log(`🚀 Iniciando barrido de ${start} Hz a ${end} Hz (paso ${step} Hz, espera ${waitSec}s)`);
-
-  for (let f = start; f <= end; f += step) {
-    if (sweepAbort) {
-      log("⏹️ Barrido detenido por usuario.");
-      break;
-    }
-    const cmd = `S${Math.round(f)}`;
-    socket.emit("send_command", { deviceId: id, command: cmd });
-    log(`📤 Enviado: ${cmd}`);
-    await new Promise(res => setTimeout(res, waitSec * 1000));
-  }
-
-  sweepRunning = false;
-  log("✅ Barrido completado.");
-}
-
-function stopSweep() {
-  if (!sweepRunning) {
-    log("⚠️ No hay barrido en ejecución.");
-    return;
-  }
-  sweepAbort = true;
-}
-
-// ==========================================================
-// FUNCIONES ADC - OSCILOSCOPIO
-// ==========================================================
 function parseADCData(data) {
-  // Formato: CH1:1234,CH2:5678
   const match = data.match(/CH1:(\d+),CH2:(\d+)/);
   if (!match) return;
 
@@ -775,14 +890,12 @@ function parseADCData(data) {
   adcBuffer.ch2.push(ch2);
   sampleCounter++;
 
-  // Aplicar trigger
   const triggerChannel = document.getElementById('triggerChannel').value;
   const triggerLevel = parseInt(document.getElementById('triggerLevel').value);
   const triggerMode = document.getElementById('triggerMode').value;
 
   let triggerValue = (triggerChannel === 'ch1') ? ch1 : (triggerChannel === 'ch2') ? ch2 : null;
 
-  // Lógica de trigger
   if (triggerChannel !== 'none' && triggerValue !== null) {
     if (!triggerArmed) {
       if (triggerMode === 'rising' && triggerValue > triggerLevel) {
@@ -804,7 +917,6 @@ function parseADCData(data) {
     triggerTriggered = true;
   }
 
-  // Actualizar gráfico si hay suficientes muestras o si está trigado
   if (adcBuffer.ch1.length >= MAX_ADC_SAMPLES && triggerTriggered) {
     updateADCChart();
     adcBuffer.ch1 = [];
@@ -835,7 +947,3 @@ function clearADCChart() {
   adcBuffer.ch2 = [];
   sampleCounter = 0;
 }
-</script>
-
-</body>
-</html>
