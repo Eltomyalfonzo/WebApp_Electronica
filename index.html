@@ -390,11 +390,11 @@
 
 <div class="sidebar">
   <h3>Herramientas</h3>
-  <div class="menu-item active" onclick="showSection('inicio')">Inicio</div>
-  <div class="menu-item" onclick="showSection('bode')">Diagrama de Bode</div>
-  <div class="menu-item" onclick="showSection('nyquist')">Diagrama de Nyquist</div>
-  <div class="menu-item" onclick="showSection('osciloscopio')">Osciloscopio</div>
-  <div class="menu-item" onclick="showSection('conexion')">Conexión y Control</div>
+  <div class="menu-item active" data-section="inicio">Inicio</div>
+  <div class="menu-item" data-section="bode">Diagrama de Bode</div>
+  <div class="menu-item" data-section="nyquist">Diagrama de Nyquist</div>
+  <div class="menu-item" data-section="osciloscopio">Osciloscopio</div>
+  <div class="menu-item" data-section="conexion">Conexión y Control</div>
 </div>
 
 <div class="main-content">
@@ -556,18 +556,32 @@
 const socket = io();
 let currentDevice = null;
 
+// Inicializar la navegación del menú
+document.addEventListener('DOMContentLoaded', function() {
+  const menuItems = document.querySelectorAll('.menu-item');
+  menuItems.forEach(item => {
+    item.addEventListener('click', function() {
+      const sectionId = this.getAttribute('data-section');
+      showSection(sectionId);
+    });
+  });
+});
+
 function showSection(sectionId) {
   // Remover clase active de todas las secciones y menús
   document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
   
   // Activar la sección seleccionada
-  document.getElementById(sectionId).classList.add('active');
+  const section = document.getElementById(sectionId);
+  if (section) {
+    section.classList.add('active');
+  }
   
   // Activar el menú clickeado
   const menuItems = document.querySelectorAll('.menu-item');
   menuItems.forEach(item => {
-    if (item.getAttribute('onclick').includes(sectionId)) {
+    if (item.getAttribute('data-section') === sectionId) {
       item.classList.add('active');
     }
   });
