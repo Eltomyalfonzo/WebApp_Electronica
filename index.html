@@ -753,11 +753,11 @@ function showSection(sectionId) {
 // Funciones de conexión
 function connectDevice() {
   const id = document.getElementById("deviceId").value.trim();
-  if (!id) return log("Ingrese un ID de dispositivo.");
+  if (!id) return log("⚠️ Ingrese un ID de dispositivo.");
   currentDevice = id;
   socket.emit("join_device", id);
   socket.emit("connect_device", id);
-  log(`Intentando conectar con ${id}...`);
+  log(`📡 Intentando conectar con ${id}...`);
 }
 
 function sendData(e) {
@@ -766,25 +766,25 @@ function sendData(e) {
   const id = document.getElementById("deviceId").value.trim();
   if (!v || !id) return;
   socket.emit("send_command", { deviceId: id, command: v });
-  log(`Enviado a ${id}: ${v}`);
+  log(`📤 Enviado a ${id}: ${v}`);
   document.getElementById("inputData").value = "";
 }
 
 function sendCommand(cmd) {
   const id = document.getElementById("deviceId").value.trim();
   if (!id) {
-    log("Conecta primero a un dispositivo");
+    log("⚠️ Conecta primero a un dispositivo");
     return;
   }
   socket.emit("send_command", { deviceId: id, command: cmd });
-  log(`Comando: ${cmd}`);
+  log(`📤 Comando: ${cmd}`);
 }
 
 // Funciones de parseo
 function parsePlot(msg) {
   const m = msg.match(/^([-+]?[0-9]*\.?[0-9]+);([0-9]*\.?[0-9]+)([AF])$/);
   if (!m) {
-    log("Formato inválido: " + msg);
+    log("⚠️ Formato inválido: " + msg);
     return;
   }
   const val = parseFloat(m[1]), freq = parseFloat(m[2]), type = m[3];
@@ -833,7 +833,11 @@ function parseADCData(data) {
       if (triggerMode === 'rising' && triggerValue > triggerLevel) {
         triggerArmed = true;
         triggerTriggered = false;
-      } else if (!triggerTriggered) {
+      } else if (triggerMode === 'falling' && triggerValue < triggerLevel) {
+        triggerArmed = true;
+        triggerTriggered = false;
+      }
+    } else if (!triggerTriggered) {
       if (triggerMode === 'rising' && triggerValue <= triggerLevel) {
         triggerTriggered = true;
       } else if (triggerMode === 'falling' && triggerValue >= triggerLevel) {
@@ -935,6 +939,7 @@ function downloadAllCharts() {
   downloadBodeCSV('magnitude');
   downloadBodeCSV('phase');
   downloadNyquistCSV();
+  log('✅ Gráficos descargados correctamente');
 }
 
 // Socket.io eventos
@@ -951,7 +956,7 @@ socket.on("adc_data", ({ deviceId, data }) => {
 
 // Inicializar eventos después de cargar el DOM
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('Inicializando FRA Monitor...');
+  console.log('✅ Inicializando FRA Monitor...');
   
   // Menú de navegación
   const menuItems = document.querySelectorAll('.menu-item');
@@ -1027,14 +1032,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   
-  console.log('FRA Monitor inicializado correctamente');
+  log('✅ FRA Monitor inicializado correctamente');
+  console.log('✅ FRA Monitor listo para usar');
 });
 </script>
 
 </body>
-</html> if (triggerMode === 'falling' && triggerValue < triggerLevel) {
-        triggerArmed = true;
-        triggerTriggered = false;
-      }
-    } else
-                                                        
+</html>
