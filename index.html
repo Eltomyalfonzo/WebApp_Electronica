@@ -4,9 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FRA Monitor - UTN FRSF</title>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * {
       margin: 0;
@@ -553,8 +552,38 @@
 </div>
 
 <script>
+// Cargar Socket.IO dinámicamente
+function loadSocketIO() {
+  return new Promise((resolve, reject) => {
+    // Primero intentar cargar desde el servidor
+    const script1 = document.createElement('script');
+    script1.src = '/socket.io/socket.io.js';
+    script1.onload = () => {
+      console.log('✅ Socket.IO cargado desde servidor');
+      resolve();
+    };
+    script1.onerror = () => {
+      console.log('⚠️ No se pudo cargar desde servidor, intentando CDN...');
+      // Si falla, intentar desde CDN
+      const script2 = document.createElement('script');
+      script2.src = 'https://cdn.socket.io/4.7.2/socket.io.min.js';
+      script2.crossOrigin = 'anonymous';
+      script2.onload = () => {
+        console.log('✅ Socket.IO cargado desde CDN');
+        resolve();
+      };
+      script2.onerror = () => {
+        console.error('❌ No se pudo cargar Socket.IO');
+        reject(new Error('Socket.IO no disponible'));
+      };
+      document.head.appendChild(script2);
+    };
+    document.head.appendChild(script1);
+  });
+}
+
 // Variables globales
-const socket = io();
+let socket;
 let currentDevice = null;
 let latestMagnitude = NaN;
 let latestPhase = NaN;
@@ -563,6 +592,52 @@ let sampleCounter = 0;
 let triggerArmed = false;
 let triggerTriggered = false;
 const MAX_ADC_SAMPLES = 500;
+
+// Inicializar Socket.IO
+async function initializeSocket() {
+  try {
+    // Esperar a que Socket.IO esté cargado
+    await loadSocketIO();
+    
+    if (typeof io === 'undefined') {
+      throw new Error('Socket.IO no disponible');
+    }
+    
+    socket = io();
+    console.log('✅ Socket.IO conectado');
+    
+    // Configurar eventos de socket
+    socket.on("update_data", ({ deviceId, payload }) => {
+      if (!currentDevice || deviceId !== currentDevice) return;
+      if (typeof payload === "string") parsePlot(payload);
+      else if (payload.msg) parsePlot(payload.msg);
+    });
+
+    socket.on("adc_data", ({ deviceId, data }) => {
+      if (!currentDevice || deviceId !== currentDevice) return;
+      parseADCData(data);
+    });
+    
+    socket.on('connect', () => {
+      log('✅ Conectado al servidor');
+      console.log('✅ Conectado al servidor MQTT');
+    });
+    
+    socket.on('disconnect', () => {
+      log('⚠️ Desconectado del servidor');
+      console.log('⚠️ Desconectado del servidor MQTT');
+    });
+    
+    socket.on('error', (error) => {
+      log('❌ Error de conexión: ' + error);
+      console.error('❌ Error:', error);
+    });
+    
+  } catch (error) {
+    console.error('❌ Error al inicializar Socket.IO:', error);
+    log('❌ No se pudo conectar al servidor. Asegúrate de que el servidor esté corriendo.');
+  }
+}
 
 // Configuración de Charts
 Chart.defaults.font.family = 'Roboto';
@@ -754,6 +829,11 @@ function showSection(sectionId) {
 function connectDevice() {
   const id = document.getElementById("deviceId").value.trim();
   if (!id) return log("⚠️ Ingrese un ID de dispositivo.");
+  if (!socket || !socket.connected) {
+    log("❌ Socket.IO no está conectado. Espera un momento o recarga la página.");
+    return;
+  }
+  
   currentDevice = id;
   socket.emit("join_device", id);
   socket.emit("connect_device", id);
@@ -765,6 +845,11 @@ function sendData(e) {
   const v = document.getElementById("inputData").value.trim();
   const id = document.getElementById("deviceId").value.trim();
   if (!v || !id) return;
+  if (!socket || !socket.connected) {
+    log("❌ Socket.IO no está conectado");
+    return;
+  }
+  
   socket.emit("send_command", { deviceId: id, command: v });
   log(`📤 Enviado a ${id}: ${v}`);
   document.getElementById("inputData").value = "";
@@ -776,6 +861,11 @@ function sendCommand(cmd) {
     log("⚠️ Conecta primero a un dispositivo");
     return;
   }
+  if (!socket || !socket.connected) {
+    log("❌ Socket.IO no está conectado");
+    return;
+  }
+  
   socket.emit("send_command", { deviceId: id, command: cmd });
   log(`📤 Comando: ${cmd}`);
 }
@@ -942,21 +1032,12 @@ function downloadAllCharts() {
   log('✅ Gráficos descargados correctamente');
 }
 
-// Socket.io eventos
-socket.on("update_data", ({ deviceId, payload }) => {
-  if (!currentDevice || deviceId !== currentDevice) return;
-  if (typeof payload === "string") parsePlot(payload);
-  else if (payload.msg) parsePlot(payload.msg);
-});
-
-socket.on("adc_data", ({ deviceId, data }) => {
-  if (!currentDevice || deviceId !== currentDevice) return;
-  parseADCData(data);
-});
-
 // Inicializar eventos después de cargar el DOM
 document.addEventListener('DOMContentLoaded', function() {
   console.log('✅ Inicializando FRA Monitor...');
+  
+  // Inicializar Socket.IO
+  initializeSocket();
   
   // Menú de navegación
   const menuItems = document.querySelectorAll('.menu-item');
