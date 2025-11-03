@@ -296,7 +296,7 @@
       line-height: 1.5;
     }
 
-    /* ESTILOS MEJORADOS PARA OSCILOSCOPIO */
+    /* NUEVOS ESTILOS PARA OSCILOSCOPIO MEJORADO */
     .info-bar {
       display: flex;
       justify-content: space-between;
@@ -397,6 +397,7 @@
 
     .control-group input[type="range"] {
       cursor: pointer;
+      padding: 0;
     }
 
     .oscilloscope-controls {
@@ -423,17 +424,23 @@
       margin-bottom: 0.8rem;
     }
 
-    .trigger-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 1rem;
-    }
-
     .adc-controls {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 1rem;
       margin-bottom: 1.5rem;
+    }
+
+    .adc-trigger-controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    .adc-trigger-controls .form-group {
+      margin-bottom: 0;
     }
 
     .full-width-chart {
@@ -464,12 +471,12 @@
         grid-template-columns: 1fr;
       }
 
-      .channel-controls {
-        grid-template-columns: 1fr;
-      }
-
       .adc-controls {
         grid-template-columns: 1fr 1fr;
+      }
+
+      .channel-controls {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -611,6 +618,7 @@
     <div class="card">
       <h2>🔬 Osciloscopio Digital</h2>
       
+      <!-- Barra de información -->
       <div class="info-bar">
         <div class="info-bar-item">
           <span class="info-label">Escala Tiempo:</span>
@@ -630,7 +638,7 @@
         </div>
       </div>
 
-      <!-- Controles de Canal -->
+      <!-- Controles de canales mejorados -->
       <div class="channel-controls">
         <div class="channel-panel ch1">
           <h3>📊 Canal 1 (Azul)</h3>
@@ -640,11 +648,11 @@
           </div>
           <div class="control-group">
             <label>
-              <span>Escala Vertical (V/div)</span>
+              <span>Escala Vertical</span>
               <span class="scale-value" id="ch1ScaleValue">4095 LSB</span>
             </label>
             <input type="range" id="ch1Scale" min="100" max="4095" value="4095" step="50">
-            <select id="ch1ScalePreset">
+            <select id="ch1ScalePreset" class="form-control">
               <option value="4095">Escala Completa (0-4095)</option>
               <option value="2048">Media Escala (±2048)</option>
               <option value="1024">1/4 Escala (±1024)</option>
@@ -670,11 +678,11 @@
           </div>
           <div class="control-group">
             <label>
-              <span>Escala Vertical (V/div)</span>
+              <span>Escala Vertical</span>
               <span class="scale-value" id="ch2ScaleValue">4095 LSB</span>
             </label>
             <input type="range" id="ch2Scale" min="100" max="4095" value="4095" step="50">
-            <select id="ch2ScalePreset">
+            <select id="ch2ScalePreset" class="form-control">
               <option value="4095">Escala Completa (0-4095)</option>
               <option value="2048">Media Escala (±2048)</option>
               <option value="1024">1/4 Escala (±1024)</option>
@@ -693,7 +701,7 @@
         </div>
       </div>
 
-      <!-- Controles de Tiempo -->
+      <!-- Controles de tiempo -->
       <div class="oscilloscope-controls">
         <div class="control-group">
           <label>
@@ -701,7 +709,7 @@
             <span class="scale-value" id="timescaleValue">500 muestras</span>
           </label>
           <input type="range" id="timescale" min="50" max="1000" value="500" step="50">
-          <select id="timescalePreset">
+          <select id="timescalePreset" class="form-control">
             <option value="100">100 muestras (rápido)</option>
             <option value="250">250 muestras</option>
             <option value="500" selected>500 muestras</option>
@@ -712,7 +720,7 @@
 
         <div class="control-group">
           <label>🔄 Modo de Actualización</label>
-          <select id="updateMode">
+          <select id="updateMode" class="form-control">
             <option value="continuous">Continuo</option>
             <option value="single" selected>Disparo Único</option>
           </select>
@@ -720,7 +728,7 @@
 
         <div class="control-group">
           <label>📈 Interpolación</label>
-          <select id="interpolation">
+          <select id="interpolation" class="form-control">
             <option value="0">Sin interpolación</option>
             <option value="0.1" selected>Suave</option>
             <option value="0.3">Muy suave</option>
@@ -728,34 +736,28 @@
         </div>
       </div>
 
-      <!-- Controles de Trigger -->
-      <div class="trigger-controls">
-        <h3>⚡ Trigger</h3>
-        <div class="trigger-grid">
-          <div class="control-group">
-            <label>Canal</label>
-            <select id="triggerChannel">
-              <option value="none">Deshabilitado</option>
-              <option value="ch1">Canal 1</option>
-              <option value="ch2">Canal 2</option>
-            </select>
-          </div>
-          <div class="control-group">
-            <label>Nivel</label>
-            <input id="triggerLevel" type="number" value="2048" min="0" max="4095">
-          </div>
-          <div class="control-group">
-            <label>Modo</label>
-            <select id="triggerMode">
-              <option value="rising">Flanco Ascendente ↗</option>
-              <option value="falling">Flanco Descendente ↘</option>
-            </select>
-          </div>
-          <div class="control-group">
-            <label>Acciones</label>
-            <button class="btn btn-secondary" id="clearADCBtn">Limpiar</button>
-          </div>
+      <!-- Controles de trigger originales -->
+      <div class="adc-trigger-controls">
+        <div class="form-group">
+          <label>Trigger</label>
+          <select id="triggerChannel" class="form-control">
+            <option value="none">Deshabilitado</option>
+            <option value="ch1">Canal 1</option>
+            <option value="ch2">Canal 2</option>
+          </select>
         </div>
+        <div class="form-group">
+          <label>Nivel</label>
+          <input id="triggerLevel" type="number" class="form-control" value="2048" min="0" max="4095">
+        </div>
+        <div class="form-group">
+          <label>Modo</label>
+          <select id="triggerMode" class="form-control">
+            <option value="rising">Flanco Ascendente</option>
+            <option value="falling">Flanco Descendente</option>
+          </select>
+        </div>
+        <button class="btn btn-secondary" id="clearADCBtn">Limpiar</button>
       </div>
 
       <div class="chart-container">
@@ -820,3 +822,657 @@ function loadSocketIO() {
         console.error('❌ No se pudo cargar Socket.IO');
         reject(new Error('Socket.IO no disponible'));
       };
+      document.head.appendChild(script2);
+    };
+    document.head.appendChild(script1);
+  });
+}
+
+// Variables globales
+let socket;
+let currentDevice = null;
+let latestMagnitude = NaN;
+let latestPhase = NaN;
+let adcBuffer = { ch1: [], ch2: [] };
+let sampleCounter = 0;
+let triggerArmed = false;
+let triggerTriggered = false;
+let MAX_ADC_SAMPLES = 500;
+
+// Variables para osciloscopio mejorado
+let ch1Scale = 4095;
+let ch1Offset = 2048;
+let ch2Scale = 4095;
+let ch2Offset = 2048;
+let updateMode = 'single';
+let interpolationTension = 0.1;
+
+// Inicializar Socket.IO
+async function initializeSocket() {
+  try {
+    await loadSocketIO();
+    
+    if (typeof io === 'undefined') {
+      throw new Error('Socket.IO no disponible');
+    }
+    
+    socket = io();
+    console.log('✅ Socket.IO conectado');
+    
+    socket.on("update_data", ({ deviceId, payload }) => {
+      if (!currentDevice || deviceId !== currentDevice) return;
+      if (typeof payload === "string") parsePlot(payload);
+      else if (payload.msg) parsePlot(payload.msg);
+    });
+
+    socket.on("adc_data", ({ deviceId, data }) => {
+      if (!currentDevice || deviceId !== currentDevice) return;
+      parseADCData(data);
+    });
+    
+    socket.on('connect', () => {
+      log('✅ Conectado al servidor');
+      console.log('✅ Conectado al servidor MQTT');
+    });
+    
+    socket.on('disconnect', () => {
+      log('⚠️ Desconectado del servidor');
+      console.log('⚠️ Desconectado del servidor MQTT');
+    });
+    
+    socket.on('error', (error) => {
+      log('❌ Error de conexión: ' + error);
+      console.error('❌ Error:', error);
+    });
+    
+  } catch (error) {
+    console.error('❌ Error al inicializar Socket.IO:', error);
+    log('❌ No se pudo conectar al servidor. Asegúrate de que el servidor esté corriendo.');
+  }
+}
+
+// Configuración de Charts
+Chart.defaults.font.family = 'Roboto';
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#5a6c7d';
+
+// Crear gráficos
+const chartMag = new Chart(document.getElementById('chartMag'), {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Magnitud [dB]',
+      data: [],
+      borderColor: '#2c5aa0',
+      backgroundColor: 'rgba(44, 90, 160, 0.1)',
+      borderWidth: 2,
+      fill: true,
+      tension: 0.3,
+      pointRadius: 3,
+      pointBackgroundColor: '#2c5aa0'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: true } },
+    scales: {
+      x: {
+        type: 'logarithmic',
+        title: { display: true, text: 'Frecuencia [rad/s]' },
+        grid: { color: 'rgba(0,0,0,0.05)' }
+      },
+      y: {
+        title: { display: true, text: 'Magnitud [dB]' },
+        grid: { color: 'rgba(0,0,0,0.05)' }
+      }
+    }
+  }
+});
+
+const chartPhase = new Chart(document.getElementById('chartPhase'), {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Fase [rad]',
+      data: [],
+      borderColor: '#2c5aa0',
+      backgroundColor: 'rgba(44, 90, 160, 0.1)',
+      borderWidth: 2,
+      fill: true,
+      tension: 0.3,
+      pointRadius: 3,
+      pointBackgroundColor: '#2c5aa0'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: true } },
+    scales: {
+      x: {
+        type: 'logarithmic',
+        title: { display: true, text: 'Frecuencia [rad/s]' },
+        grid: { color: 'rgba(0,0,0,0.05)' }
+      },
+      y: {
+        title: { display: true, text: 'Fase [rad]' },
+        grid: { color: 'rgba(0,0,0,0.05)' }
+      }
+    }
+  }
+});
+
+const chartNyquist = new Chart(document.getElementById('chartNyquist'), {
+  type: 'scatter',
+  data: {
+    datasets: [{
+      label: 'Nyquist',
+      data: [],
+      borderColor: '#2c5aa0',
+      backgroundColor: 'rgba(44, 90, 160, 0.5)',
+      borderWidth: 2,
+      pointRadius: 4,
+      showLine: true,
+      fill: false,
+      tension: 0.2
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: true } },
+    scales: {
+      x: {
+        title: { display: true, text: 'Re' },
+        grid: { color: 'rgba(0,0,0,0.05)' }
+      },
+      y: {
+        title: { display: true, text: 'Im' },
+        grid: { color: 'rgba(0,0,0,0.05)' }
+      }
+    }
+  }
+});
+
+const chartADC = new Chart(document.getElementById('chartADC'), {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [
+      {
+        label: 'Canal 1',
+        data: [],
+        borderColor: '#2c5aa0',
+        backgroundColor: 'rgba(44, 90, 160, 0.1)',
+        borderWidth: 2,
+        fill: false,
+        tension: 0.1,
+        pointRadius: 0,
+        yAxisID: 'y'
+      },
+      {
+        label: 'Canal 2',
+        data: [],
+        borderColor: '#6c757d',
+        backgroundColor: 'rgba(108, 117, 125, 0.1)',
+        borderWidth: 2,
+        fill: false,
+        tension: 0.1,
+        pointRadius: 0,
+        yAxisID: 'y1'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { display: true } },
+    scales: {
+      x: {
+        title: { display: true, text: 'Muestras' },
+        grid: { color: 'rgba(0,0,0,0.05)' }
+      },
+      y: {
+        position: 'left',
+        title: { display: true, text: 'Canal 1 (0-4095)' },
+        min: 0,
+        max: 4095,
+        grid: { color: 'rgba(44, 90, 160, 0.1)' }
+      },
+      y1: {
+        position: 'right',
+        title: { display: true, text: 'Canal 2 (0-4095)' },
+        min: 0,
+        max: 4095,
+        grid: { drawOnChartArea: false }
+      }
+    }
+  }
+});
+
+// Funciones de utilidad
+function log(msg) {
+  const logEl = document.getElementById("log");
+  logEl.textContent += msg + "\n";
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function showSection(sectionId) {
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+  
+  const section = document.getElementById(sectionId);
+  if (section) {
+    section.classList.add('active');
+  }
+  
+  document.querySelectorAll('.menu-item').forEach(item => {
+    if (item.getAttribute('data-section') === sectionId) {
+      item.classList.add('active');
+    }
+  });
+}
+
+// Funciones de conexión
+function connectDevice() {
+  const id = document.getElementById("deviceId").value.trim();
+  if (!id) return log("⚠️ Ingrese un ID de dispositivo.");
+  if (!socket || !socket.connected) {
+    log("❌ Socket.IO no está conectado. Espera un momento o recarga la página.");
+    return;
+  }
+  
+  currentDevice = id;
+  socket.emit("join_device", id);
+  socket.emit("connect_device", id);
+  log(`📡 Intentando conectar con ${id}...`);
+}
+
+function sendData(e) {
+  e.preventDefault();
+  const v = document.getElementById("inputData").value.trim();
+  const id = document.getElementById("deviceId").value.trim();
+  if (!v || !id) return;
+  if (!socket || !socket.connected) {
+    log("❌ Socket.IO no está conectado");
+    return;
+  }
+  
+  socket.emit("send_command", { deviceId: id, command: v });
+  log(`📤 Enviado a ${id}: ${v}`);
+  document.getElementById("inputData").value = "";
+}
+
+function sendCommand(cmd) {
+  const id = document.getElementById("deviceId").value.trim();
+  if (!id) {
+    log("⚠️ Conecta primero a un dispositivo");
+    return;
+  }
+  if (!socket || !socket.connected) {
+    log("❌ Socket.IO no está conectado");
+    return;
+  }
+  
+  socket.emit("send_command", { deviceId: id, command: cmd });
+  log(`📤 Comando: ${cmd}`);
+}
+
+// Funciones de parseo
+function parsePlot(msg) {
+  const m = msg.match(/^([-+]?[0-9]*\.?[0-9]+);([0-9]*\.?[0-9]+)([AF])$/);
+  if (!m) {
+    log("⚠️ Formato inválido: " + msg);
+    return;
+  }
+  const val = parseFloat(m[1]), freq = parseFloat(m[2]), type = m[3];
+
+  if (type === "A") {
+    chartMag.data.labels.push(freq);
+    chartMag.data.datasets[0].data.push(val);
+    chartMag.update('none');
+    latestMagnitude = Math.pow(10, val / 20);
+    if (!isNaN(latestPhase)) addNyquist(latestMagnitude, latestPhase);
+  } else if (type === "F") {
+    chartPhase.data.labels.push(freq);
+    chartPhase.data.datasets[0].data.push(val);
+    chartPhase.update('none');
+    latestPhase = val;
+    if (!isNaN(latestMagnitude)) addNyquist(latestMagnitude, latestPhase);
+  }
+}
+
+function addNyquist(mag, phase) {
+  const re = mag * Math.cos(phase);
+  const im = mag * Math.sin(phase);
+  chartNyquist.data.datasets[0].data.push({ x: re, y: im });
+  chartNyquist.update('none');
+}
+
+// Función mejorada para actualizar escalas del gráfico
+function updateChartScales() {
+  const ch1Min = Math.max(0, ch1Offset - ch1Scale);
+  const ch1Max = Math.min(4095, ch1Offset + ch1Scale);
+  const ch2Min = Math.max(0, ch2Offset - ch2Scale);
+  const ch2Max = Math.min(4095, ch2Offset + ch2Scale);
+
+  chartADC.options.scales.y.min = ch1Min;
+  chartADC.options.scales.y.max = ch1Max;
+  chartADC.options.scales.y1.min = ch2Min;
+  chartADC.options.scales.y1.max = ch2Max;
+  
+  chartADC.update('none');
+}
+
+function parseADCData(data) {
+  const match = data.match(/CH1:(\d+),CH2:(\d+)/);
+  if (!match) return;
+
+  const ch1 = parseInt(match[1]);
+  const ch2 = parseInt(match[2]);
+
+  adcBuffer.ch1.push(ch1);
+  adcBuffer.ch2.push(ch2);
+  sampleCounter++;
+  
+  // Actualizar contador en pantalla
+  document.getElementById('sampleCountDisplay').textContent = sampleCounter;
+
+  const triggerChannel = document.getElementById('triggerChannel').value;
+  const triggerLevel = parseInt(document.getElementById('triggerLevel').value);
+  const triggerMode = document.getElementById('triggerMode').value;
+
+  let triggerValue = (triggerChannel === 'ch1') ? ch1 : (triggerChannel === 'ch2') ? ch2 : null;
+
+  if (triggerChannel !== 'none' && triggerValue !== null) {
+    if (!triggerArmed) {
+      if (triggerMode === 'rising' && triggerValue > triggerLevel) {
+        triggerArmed = true;
+        triggerTriggered = false;
+      } else if (triggerMode === 'falling' && triggerValue < triggerLevel) {
+        triggerArmed = true;
+        triggerTriggered = false;
+      }
+    } else if (!triggerTriggered) {
+      if (triggerMode === 'rising' && triggerValue <= triggerLevel) {
+        triggerTriggered = true;
+      } else if (triggerMode === 'falling' && triggerValue >= triggerLevel) {
+        triggerTriggered = true;
+      }
+    }
+  } else {
+    triggerArmed = true;
+    triggerTriggered = true;
+  }
+
+  const shouldUpdate = updateMode === 'continuous' || 
+                      (adcBuffer.ch1.length >= MAX_ADC_SAMPLES && triggerTriggered);
+
+  if (shouldUpdate) {
+    updateADCChart();
+    if (updateMode === 'single') {
+      adcBuffer.ch1 = [];
+      adcBuffer.ch2 = [];
+      sampleCounter = 0;
+      triggerArmed = false;
+      triggerTriggered = false;
+    }
+  }
+}
+
+function updateADCChart() {
+  const dataLength = Math.min(adcBuffer.ch1.length, MAX_ADC_SAMPLES);
+  const startIdx = Math.max(0, adcBuffer.ch1.length - MAX_ADC_SAMPLES);
+  
+  chartADC.data.labels = [];
+  for (let i = 0; i < dataLength; i++) {
+    chartADC.data.labels.push(i.toString());
+  }
+  chartADC.data.datasets[0].data = adcBuffer.ch1.slice(startIdx);
+  chartADC.data.datasets[1].data = adcBuffer.ch2.slice(startIdx);
+  chartADC.update('none');
+}
+
+function clearADCChart() {
+  chartADC.data.labels = [];
+  chartADC.data.datasets[0].data = [];
+  chartADC.data.datasets[1].data = [];
+  chartADC.update('none');
+  adcBuffer.ch1 = [];
+  adcBuffer.ch2 = [];
+  sampleCounter = 0;
+  document.getElementById('sampleCountDisplay').textContent = '0';
+}
+
+// Funciones de descarga
+function downloadChart(chart, filename) {
+  const link = document.createElement('a');
+  link.href = chart.toBase64Image();
+  link.download = filename;
+  link.click();
+}
+
+function downloadBodeCSV(type) {
+  let csv = '';
+  let data, labels;
+  
+  if (type === 'magnitude') {
+    csv = 'Frecuencia [rad/s],Magnitud [dB]\n';
+    labels = chartMag.data.labels;
+    data = chartMag.data.datasets[0].data;
+  } else {
+    csv = 'Frecuencia [rad/s],Fase [rad]\n';
+    labels = chartPhase.data.labels;
+    data = chartPhase.data.datasets[0].data;
+  }
+  
+  for (let i = 0; i < labels.length; i++) {
+    csv += `${labels[i]},${data[i]}\n`;
+  }
+  
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = type === 'magnitude' ? 'magnitud.csv' : 'fase.csv';
+  link.click();
+  window.URL.revokeObjectURL(url);
+}
+
+function downloadNyquistCSV() {
+  let csv = 'Re,Im\n';
+  const data = chartNyquist.data.datasets[0].data;
+  
+  for (let i = 0; i < data.length; i++) {
+    csv += `${data[i].x},${data[i].y}\n`;
+  }
+  
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'nyquist.csv';
+  link.click();
+  window.URL.revokeObjectURL(url);
+}
+
+function downloadAllCharts() {
+  downloadChart(chartMag, 'magnitud.png');
+  downloadChart(chartPhase, 'fase.png');
+  downloadChart(chartNyquist, 'nyquist.png');
+  downloadChart(chartADC, 'osciloscopio.png');
+  downloadBodeCSV('magnitude');
+  downloadBodeCSV('phase');
+  downloadNyquistCSV();
+  log('✅ Gráficos descargados correctamente');
+}
+
+// Inicializar eventos después de cargar el DOM
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('✅ Inicializando FRA Monitor...');
+  
+  // Inicializar Socket.IO
+  initializeSocket();
+  
+  // Menú de navegación
+  const menuItems = document.querySelectorAll('.menu-item');
+  menuItems.forEach(function(item) {
+    item.addEventListener('click', function() {
+      const sectionId = this.getAttribute('data-section');
+      showSection(sectionId);
+    });
+  });
+
+  // Botón de descargar todo
+  const downloadAllBtn = document.getElementById('downloadAllBtn');
+  if (downloadAllBtn) {
+    downloadAllBtn.addEventListener('click', function() {
+      downloadAllCharts();
+    });
+  }
+
+  // Botón conectar
+  const connectBtn = document.getElementById('connectBtn');
+  if (connectBtn) {
+    connectBtn.addEventListener('click', function() {
+      connectDevice();
+    });
+  }
+
+  // Formulario de comandos
+  const commandForm = document.getElementById('commandForm');
+  if (commandForm) {
+    commandForm.addEventListener('submit', function(e) {
+      sendData(e);
+    });
+  }
+
+  // Botones de canal ADC
+  const cmdButtons = document.querySelectorAll('[data-cmd]');
+  cmdButtons.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const cmd = this.getAttribute('data-cmd');
+      sendCommand(cmd);
+    });
+  });
+
+  // Botón limpiar ADC
+  const clearADCBtn = document.getElementById('clearADCBtn');
+  if (clearADCBtn) {
+    clearADCBtn.addEventListener('click', function() {
+      clearADCChart();
+    });
+  }
+
+  // Botones de descarga individual
+  const actionButtons = document.querySelectorAll('[data-action]');
+  actionButtons.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const action = this.getAttribute('data-action');
+      
+      if (action === 'download-mag-png') {
+        downloadChart(chartMag, 'magnitud.png');
+      } else if (action === 'download-mag-csv') {
+        downloadBodeCSV('magnitude');
+      } else if (action === 'download-phase-png') {
+        downloadChart(chartPhase, 'fase.png');
+      } else if (action === 'download-phase-csv') {
+        downloadBodeCSV('phase');
+      } else if (action === 'download-nyquist-png') {
+        downloadChart(chartNyquist, 'nyquist.png');
+      } else if (action === 'download-nyquist-csv') {
+        downloadNyquistCSV();
+      } else if (action === 'download-adc-png') {
+        downloadChart(chartADC, 'osciloscopio.png');
+      }
+    });
+  });
+
+  // NUEVOS EVENT LISTENERS PARA OSCILOSCOPIO MEJORADO
+  
+  // Control de escala CH1
+  document.getElementById('ch1Scale').addEventListener('input', function(e) {
+    ch1Scale = parseInt(e.target.value);
+    document.getElementById('ch1ScaleValue').textContent = ch1Scale + ' LSB';
+    document.getElementById('ch1ScaleDisplay').textContent = ch1Scale + ' LSB';
+    updateChartScales();
+  });
+
+  document.getElementById('ch1Offset').addEventListener('input', function(e) {
+    ch1Offset = parseInt(e.target.value);
+    document.getElementById('ch1OffsetValue').textContent = ch1Offset;
+    updateChartScales();
+  });
+
+  document.getElementById('ch1ScalePreset').addEventListener('change', function(e) {
+    const scale = parseInt(e.target.value);
+    document.getElementById('ch1Scale').value = scale;
+    ch1Scale = scale;
+    document.getElementById('ch1ScaleValue').textContent = scale + ' LSB';
+    document.getElementById('ch1ScaleDisplay').textContent = scale + ' LSB';
+    updateChartScales();
+  });
+
+  // Control de escala CH2
+  document.getElementById('ch2Scale').addEventListener('input', function(e) {
+    ch2Scale = parseInt(e.target.value);
+    document.getElementById('ch2ScaleValue').textContent = ch2Scale + ' LSB';
+    document.getElementById('ch2ScaleDisplay').textContent = ch2Scale + ' LSB';
+    updateChartScales();
+  });
+
+  document.getElementById('ch2Offset').addEventListener('input', function(e) {
+    ch2Offset = parseInt(e.target.value);
+    document.getElementById('ch2OffsetValue').textContent = ch2Offset;
+    updateChartScales();
+  });
+
+  document.getElementById('ch2ScalePreset').addEventListener('change', function(e) {
+    const scale = parseInt(e.target.value);
+    document.getElementById('ch2Scale').value = scale;
+    ch2Scale = scale;
+    document.getElementById('ch2ScaleValue').textContent = scale + ' LSB';
+    document.getElementById('ch2ScaleDisplay').textContent = scale + ' LSB';
+    updateChartScales();
+  });
+
+  // Control de escala temporal
+  document.getElementById('timescale').addEventListener('input', function(e) {
+    MAX_ADC_SAMPLES = parseInt(e.target.value);
+    document.getElementById('timescaleValue').textContent = MAX_ADC_SAMPLES + ' muestras';
+    document.getElementById('timeScaleDisplay').textContent = MAX_ADC_SAMPLES + ' muestras';
+  });
+
+  document.getElementById('timescalePreset').addEventListener('change', function(e) {
+    const samples = parseInt(e.target.value);
+    document.getElementById('timescale').value = samples;
+    MAX_ADC_SAMPLES = samples;
+    document.getElementById('timescaleValue').textContent = samples + ' muestras';
+    document.getElementById('timeScaleDisplay').textContent = samples + ' muestras';
+  });
+
+  // Modo de actualización
+  document.getElementById('updateMode').addEventListener('change', function(e) {
+    updateMode = e.target.value;
+  });
+
+  // Interpolación
+  document.getElementById('interpolation').addEventListener('change', function(e) {
+    interpolationTension = parseFloat(e.target.value);
+    chartADC.data.datasets[0].tension = interpolationTension;
+    chartADC.data.datasets[1].tension = interpolationTension;
+    chartADC.update('none');
+  });
+  
+  log('✅ FRA Monitor inicializado correctamente');
+  console.log('✅ FRA Monitor listo para usar');
+});
+</script>
+
+</body>
+</html>
