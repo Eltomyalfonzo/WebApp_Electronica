@@ -951,8 +951,11 @@ socket.on("adc_data", ({ deviceId, data }) => {
 
 // Inicializar eventos después de cargar el DOM
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('Inicializando FRA Monitor...');
+  
   // Menú de navegación
-  document.querySelectorAll('.menu-item').forEach(item => {
+  const menuItems = document.querySelectorAll('.menu-item');
+  menuItems.forEach(function(item) {
     item.addEventListener('click', function() {
       const sectionId = this.getAttribute('data-section');
       showSection(sectionId);
@@ -960,38 +963,71 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Botón de descargar todo
-  document.getElementById('downloadAllBtn').addEventListener('click', downloadAllCharts);
+  const downloadAllBtn = document.getElementById('downloadAllBtn');
+  if (downloadAllBtn) {
+    downloadAllBtn.addEventListener('click', function() {
+      downloadAllCharts();
+    });
+  }
 
   // Botón conectar
-  document.getElementById('connectBtn').addEventListener('click', connectDevice);
+  const connectBtn = document.getElementById('connectBtn');
+  if (connectBtn) {
+    connectBtn.addEventListener('click', function() {
+      connectDevice();
+    });
+  }
 
   // Formulario de comandos
-  document.getElementById('commandForm').addEventListener('submit', sendData);
+  const commandForm = document.getElementById('commandForm');
+  if (commandForm) {
+    commandForm.addEventListener('submit', function(e) {
+      sendData(e);
+    });
+  }
 
   // Botones de canal ADC
-  document.querySelectorAll('[data-cmd]').forEach(btn => {
+  const cmdButtons = document.querySelectorAll('[data-cmd]');
+  cmdButtons.forEach(function(btn) {
     btn.addEventListener('click', function() {
-      sendCommand(this.getAttribute('data-cmd'));
+      const cmd = this.getAttribute('data-cmd');
+      sendCommand(cmd);
     });
   });
 
   // Botón limpiar ADC
-  document.getElementById('clearADCBtn').addEventListener('click', clearADCChart);
+  const clearADCBtn = document.getElementById('clearADCBtn');
+  if (clearADCBtn) {
+    clearADCBtn.addEventListener('click', function() {
+      clearADCChart();
+    });
+  }
 
   // Botones de descarga individual
-  document.querySelectorAll('[data-action]').forEach(btn => {
+  const actionButtons = document.querySelectorAll('[data-action]');
+  actionButtons.forEach(function(btn) {
     btn.addEventListener('click', function() {
       const action = this.getAttribute('data-action');
       
-      if (action === 'download-mag-png') downloadChart(chartMag, 'magnitud.png');
-      else if (action === 'download-mag-csv') downloadBodeCSV('magnitude');
-      else if (action === 'download-phase-png') downloadChart(chartPhase, 'fase.png');
-      else if (action === 'download-phase-csv') downloadBodeCSV('phase');
-      else if (action === 'download-nyquist-png') downloadChart(chartNyquist, 'nyquist.png');
-      else if (action === 'download-nyquist-csv') downloadNyquistCSV();
-      else if (action === 'download-adc-png') downloadChart(chartADC, 'osciloscopio.png');
+      if (action === 'download-mag-png') {
+        downloadChart(chartMag, 'magnitud.png');
+      } else if (action === 'download-mag-csv') {
+        downloadBodeCSV('magnitude');
+      } else if (action === 'download-phase-png') {
+        downloadChart(chartPhase, 'fase.png');
+      } else if (action === 'download-phase-csv') {
+        downloadBodeCSV('phase');
+      } else if (action === 'download-nyquist-png') {
+        downloadChart(chartNyquist, 'nyquist.png');
+      } else if (action === 'download-nyquist-csv') {
+        downloadNyquistCSV();
+      } else if (action === 'download-adc-png') {
+        downloadChart(chartADC, 'osciloscopio.png');
+      }
     });
   });
+  
+  console.log('FRA Monitor inicializado correctamente');
 });
 </script>
 
@@ -1001,3 +1037,4 @@ document.addEventListener('DOMContentLoaded', function() {
         triggerTriggered = false;
       }
     } else
+                                                        
