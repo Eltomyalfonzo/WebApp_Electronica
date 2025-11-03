@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FRA Monitor - UTN FRSF</title>
+  <title>Osciloscopio Mejorado - FRA Monitor</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -17,120 +17,7 @@
       font-family: 'Roboto', sans-serif;
       background: #f5f7fa;
       color: #2c3e50;
-      min-height: 100vh;
-    }
-
-    .navbar {
-      background: #1a2332;
-      padding: 1rem 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      border-bottom: 3px solid #2c5aa0;
-    }
-
-    .navbar-brand {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .logo-utn {
-      width: 50px;
-      height: 50px;
-      background: white;
-      border-radius: 4px;
-      padding: 4px;
-    }
-
-    .navbar h1 {
-      font-size: 1.5rem;
-      font-weight: 500;
-      color: white;
-      letter-spacing: 0.5px;
-    }
-
-    .navbar-actions button {
-      background: #2c5aa0;
-      color: white;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: 500;
-      font-size: 0.9rem;
-      transition: all 0.3s ease;
-    }
-
-    .navbar-actions button:hover {
-      background: #3d6fb8;
-      box-shadow: 0 2px 8px rgba(44, 90, 160, 0.3);
-    }
-
-    .sidebar {
-      position: fixed;
-      left: 0;
-      top: 76px;
-      width: 250px;
-      height: calc(100vh - 76px);
-      background: white;
-      border-right: 1px solid #e1e8ed;
-      padding: 1.5rem 0;
-      overflow-y: auto;
-      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
-    }
-
-    .sidebar h3 {
-      padding: 0 1.5rem;
-      color: #1a2332;
-      font-size: 0.9rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 1rem;
-    }
-
-    .menu-item {
-      padding: 0.9rem 1.5rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      color: #5a6c7d;
-      font-weight: 400;
-      border-left: 3px solid transparent;
-    }
-
-    .menu-item:hover {
-      background: #f8f9fa;
-      color: #2c5aa0;
-      border-left-color: #2c5aa0;
-    }
-
-    .menu-item.active {
-      background: #e8f0f8;
-      color: #2c5aa0;
-      border-left-color: #2c5aa0;
-      font-weight: 500;
-    }
-
-    .main-content {
-      margin-left: 250px;
       padding: 2rem;
-      min-height: calc(100vh - 76px);
-    }
-
-    .content-section {
-      display: none;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .content-section.active {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
     }
 
     .card {
@@ -150,129 +37,96 @@
       border-bottom: 2px solid #e1e8ed;
     }
 
-    .card p {
-      line-height: 1.6;
-      color: #5a6c7d;
-      margin-bottom: 0.8rem;
-    }
-
-    .info-grid {
+    .oscilloscope-controls {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 1rem;
-      margin-top: 1.5rem;
-    }
-
-    .info-item {
+      margin-bottom: 1.5rem;
       background: #f8f9fa;
       padding: 1rem;
       border-radius: 6px;
-      border-left: 3px solid #2c5aa0;
     }
 
-    .info-item h4 {
-      color: #1a2332;
-      font-size: 0.9rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
 
-    .info-item p {
-      color: #5a6c7d;
-      font-size: 0.9rem;
-      margin: 0;
-    }
-
-    .charts-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .chart-container {
-      background: white;
-      border-radius: 8px;
-      padding: 1.5rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    }
-
-    .chart-container h3 {
-      color: #1a2332;
-      font-size: 1.1rem;
-      font-weight: 500;
-      margin-bottom: 1rem;
-    }
-
-    .chart-container canvas {
-      width: 100% !important;
-      height: 300px !important;
-    }
-
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    .form-group label {
-      display: block;
+    .control-group label {
       color: #1a2332;
       font-weight: 500;
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
-    .form-control {
-      width: 100%;
-      padding: 0.7rem;
+    .control-group select,
+    .control-group input {
+      padding: 0.5rem;
       border: 1px solid #d1d9e0;
       border-radius: 4px;
       font-family: 'Roboto', sans-serif;
       font-size: 0.9rem;
-      transition: border-color 0.2s ease;
     }
 
-    .form-control:focus {
-      outline: none;
-      border-color: #2c5aa0;
-      box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+    .control-group input[type="range"] {
+      cursor: pointer;
     }
 
-    .form-inline {
-      display: flex;
+    .scale-value {
+      color: #2c5aa0;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .channel-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 1rem;
-      align-items: flex-end;
-      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
     }
 
-    .form-inline .form-group {
-      flex: 1;
-      min-width: 200px;
-      margin-bottom: 0;
+    .channel-panel {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 6px;
+      border-left: 4px solid #2c5aa0;
+    }
+
+    .channel-panel.ch2 {
+      border-left-color: #6c757d;
+    }
+
+    .channel-panel h3 {
+      color: #1a2332;
+      font-size: 1rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .channel-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.8rem;
     }
 
     .btn {
       background: #2c5aa0;
       color: white;
       border: none;
-      padding: 0.7rem 1.5rem;
+      padding: 0.6rem 1rem;
       border-radius: 4px;
       cursor: pointer;
       font-weight: 500;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       transition: all 0.3s ease;
+      flex: 1;
     }
 
     .btn:hover {
       background: #3d6fb8;
       box-shadow: 0 2px 8px rgba(44, 90, 160, 0.3);
-    }
-
-    .btn-secondary {
-      background: #6c757d;
-    }
-
-    .btn-secondary:hover {
-      background: #5a6268;
     }
 
     .btn-danger {
@@ -283,86 +137,81 @@
       background: #c82333;
     }
 
-    .console-box {
-      background: #1a2332;
-      border: 1px solid #2c3e50;
-      border-radius: 4px;
+    .btn-secondary {
+      background: #6c757d;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .trigger-controls {
+      background: #f8f9fa;
       padding: 1rem;
-      height: 150px;
-      overflow-y: auto;
-      font-family: 'Courier New', monospace;
-      font-size: 0.85rem;
-      color: #a8b8cc;
-      line-height: 1.5;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      border-left: 4px solid #ffc107;
     }
 
-    .adc-controls {
+    .trigger-controls h3 {
+      color: #1a2332;
+      font-size: 1rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .trigger-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 1rem;
-      margin-bottom: 1.5rem;
     }
 
-    .adc-trigger-controls {
+    .chart-container {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .chart-container canvas {
+      width: 100% !important;
+      height: 400px !important;
+    }
+
+    .info-bar {
       display: flex;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-      align-items: flex-end;
+      justify-content: space-between;
+      padding: 0.8rem;
+      background: #1a2332;
+      color: white;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+      font-size: 0.85rem;
     }
 
-    .adc-trigger-controls .form-group {
-      margin-bottom: 0;
-    }
-
-    .full-width-chart {
-      grid-column: 1 / -1;
-    }
-
-    .download-options {
+    .info-item {
       display: flex;
-      gap: 1rem;
-      margin-top: 1rem;
+      align-items: center;
+      gap: 0.5rem;
     }
 
-    @media (max-width: 1024px) {
-      .sidebar {
-        transform: translateX(-100%);
-        z-index: 1000;
-      }
+    .info-label {
+      color: #8899a6;
+    }
 
-      .sidebar.mobile-open {
-        transform: translateX(0);
-      }
-
-      .main-content {
-        margin-left: 0;
-      }
-
-      .charts-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .adc-controls {
-        grid-template-columns: 1fr 1fr;
-      }
+    .info-value {
+      font-weight: 600;
+      color: #2c5aa0;
+      background: white;
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
     }
 
     @media (max-width: 768px) {
-      .navbar {
-        flex-direction: column;
-        gap: 1rem;
+      .channel-controls {
+        grid-template-columns: 1fr;
       }
-
-      .form-inline {
-        flex-direction: column;
-      }
-
-      .form-inline .form-group {
-        width: 100%;
-      }
-
-      .adc-controls {
+      
+      .oscilloscope-controls {
         grid-template-columns: 1fr;
       }
     }
@@ -370,381 +219,179 @@
 </head>
 <body>
 
-<div class="navbar">
-  <div class="navbar-brand">
-    <svg class="logo-utn" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <rect width="100" height="100" fill="#1a2332"/>
-      <text x="50" y="55" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="white" text-anchor="middle">UTN</text>
-      <text x="50" y="75" font-family="Arial, sans-serif" font-size="12" fill="#2c5aa0" text-anchor="middle">FRSF</text>
-    </svg>
-    <div>
-      <h1>FRA Monitor</h1>
-      <p style="font-size: 0.8rem; color: #8899a6; margin: 0;">Analizador de Respuesta en Frecuencia</p>
+<div class="card">
+  <h2>🔬 Osciloscopio Digital Mejorado</h2>
+  
+  <div class="info-bar">
+    <div class="info-item">
+      <span class="info-label">Escala Tiempo:</span>
+      <span class="info-value" id="timeScaleDisplay">500 muestras</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">CH1 Escala:</span>
+      <span class="info-value" id="ch1ScaleDisplay">4095 LSB</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">CH2 Escala:</span>
+      <span class="info-value" id="ch2ScaleDisplay">4095 LSB</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Muestras:</span>
+      <span class="info-value" id="sampleCountDisplay">0</span>
     </div>
   </div>
-  <div class="navbar-actions">
-    <button id="downloadAllBtn">Descargar Gráficos</button>
-  </div>
-</div>
 
-<div class="sidebar">
-  <h3>Herramientas</h3>
-  <div class="menu-item active" data-section="inicio">Inicio</div>
-  <div class="menu-item" data-section="bode">Diagrama de Bode</div>
-  <div class="menu-item" data-section="nyquist">Diagrama de Nyquist</div>
-  <div class="menu-item" data-section="osciloscopio">Osciloscopio</div>
-  <div class="menu-item" data-section="conexion">Conexión y Control</div>
-</div>
-
-<div class="main-content">
-  <!-- SECCIÓN INICIO -->
-  <div class="content-section active" id="inicio">
-    <div class="card">
-      <h2>Bienvenido al FRA Monitor</h2>
-      <p>Sistema de monitoreo y análisis de respuesta en frecuencia para dispositivos embebidos, desarrollado en la <strong>Universidad Tecnológica Nacional - Facultad Regional San Francisco</strong>.</p>
-      
-      <div class="info-grid">
-        <div class="info-item">
-          <h4>Análisis de Bode</h4>
-          <p>Visualiza la magnitud y fase de la respuesta en frecuencia del sistema bajo prueba.</p>
-        </div>
-        <div class="info-item">
-          <h4>Diagrama de Nyquist</h4>
-          <p>Representa la respuesta en frecuencia en el plano complejo para análisis de estabilidad.</p>
-        </div>
-        <div class="info-item">
-          <h4>Osciloscopio Digital</h4>
-          <p>Captura y visualiza señales analógicas de dos canales en tiempo real con trigger configurable.</p>
-        </div>
-        <div class="info-item">
-          <h4>Conexión MQTT</h4>
-          <p>Comunicación en tiempo real con dispositivos ESP32 a través de protocolo MQTT.</p>
-        </div>
+  <!-- Controles de Canal -->
+  <div class="channel-controls">
+    <div class="channel-panel ch1">
+      <h3>📊 Canal 1 (Azul)</h3>
+      <div class="channel-buttons">
+        <button class="btn" onclick="sendCommand('CH1ON')">ON</button>
+        <button class="btn btn-danger" onclick="sendCommand('CH1OFF')">OFF</button>
+      </div>
+      <div class="control-group">
+        <label>
+          Escala Vertical (V/div)
+          <span class="scale-value" id="ch1ScaleValue">4095 LSB</span>
+        </label>
+        <input type="range" id="ch1Scale" min="100" max="4095" value="4095" step="50">
+        <select id="ch1ScalePreset" onchange="applyPresetCh1(this.value)">
+          <option value="4095">Escala Completa (0-4095)</option>
+          <option value="2048">Media Escala (±2048)</option>
+          <option value="1024">1/4 Escala (±1024)</option>
+          <option value="512">1/8 Escala (±512)</option>
+          <option value="256">1/16 Escala (±256)</option>
+          <option value="128">1/32 Escala (±128)</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>
+          Offset Vertical
+          <span class="scale-value" id="ch1OffsetValue">2048</span>
+        </label>
+        <input type="range" id="ch1Offset" min="0" max="4095" value="2048" step="10">
       </div>
     </div>
 
-    <div class="card">
-      <h2>Descripción del Proyecto</h2>
-      <p>El FRA Monitor es una herramienta de análisis de sistemas de control y circuitos electrónicos que permite caracterizar la respuesta en frecuencia de forma remota. Utiliza tecnología web moderna para proporcionar una interfaz intuitiva y profesional.</p>
-      
-      <p><strong>Características principales:</strong></p>
-      <ul style="padding-left: 1.5rem; line-height: 1.8; color: #5a6c7d;">
-        <li>Análisis de respuesta en frecuencia (Bode y Nyquist)</li>
-        <li>Osciloscopio digital de dos canales con trigger</li>
-        <li>Comunicación MQTT con dispositivos ESP32</li>
-        <li>Exportación de datos en formato PNG y CSV</li>
-        <li>Interfaz web responsive y profesional</li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- SECCIÓN BODE -->
-  <div class="content-section" id="bode">
-    <div class="card">
-      <h2>Diagrama de Bode</h2>
-      <div class="charts-grid">
-        <div class="chart-container">
-          <h3>Magnitud [dB]</h3>
-          <canvas id="chartMag"></canvas>
-          <div class="download-options">
-            <button class="btn btn-secondary" data-action="download-mag-png">Descargar PNG</button>
-            <button class="btn btn-secondary" data-action="download-mag-csv">Descargar CSV</button>
-          </div>
-        </div>
-        <div class="chart-container">
-          <h3>Fase [rad]</h3>
-          <canvas id="chartPhase"></canvas>
-          <div class="download-options">
-            <button class="btn btn-secondary" data-action="download-phase-png">Descargar PNG</button>
-            <button class="btn btn-secondary" data-action="download-phase-csv">Descargar CSV</button>
-          </div>
-        </div>
+    <div class="channel-panel ch2">
+      <h3>📊 Canal 2 (Gris)</h3>
+      <div class="channel-buttons">
+        <button class="btn" onclick="sendCommand('CH2ON')">ON</button>
+        <button class="btn btn-danger" onclick="sendCommand('CH2OFF')">OFF</button>
+      </div>
+      <div class="control-group">
+        <label>
+          Escala Vertical (V/div)
+          <span class="scale-value" id="ch2ScaleValue">4095 LSB</span>
+        </label>
+        <input type="range" id="ch2Scale" min="100" max="4095" value="4095" step="50">
+        <select id="ch2ScalePreset" onchange="applyPresetCh2(this.value)">
+          <option value="4095">Escala Completa (0-4095)</option>
+          <option value="2048">Media Escala (±2048)</option>
+          <option value="1024">1/4 Escala (±1024)</option>
+          <option value="512">1/8 Escala (±512)</option>
+          <option value="256">1/16 Escala (±256)</option>
+          <option value="128">1/32 Escala (±128)</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>
+          Offset Vertical
+          <span class="scale-value" id="ch2OffsetValue">2048</span>
+        </label>
+        <input type="range" id="ch2Offset" min="0" max="4095" value="2048" step="10">
       </div>
     </div>
   </div>
 
-  <!-- SECCIÓN NYQUIST -->
-  <div class="content-section" id="nyquist">
-    <div class="card">
-      <h2>Diagrama de Nyquist</h2>
-      <div class="chart-container full-width-chart">
-        <canvas id="chartNyquist"></canvas>
-        <div class="download-options">
-          <button class="btn btn-secondary" data-action="download-nyquist-png">Descargar PNG</button>
-          <button class="btn btn-secondary" data-action="download-nyquist-csv">Descargar CSV</button>
-        </div>
+  <!-- Controles de Tiempo -->
+  <div class="oscilloscope-controls">
+    <div class="control-group">
+      <label>
+        ⏱️ Escala Horizontal
+        <span class="scale-value" id="timescaleValue">500 muestras</span>
+      </label>
+      <input type="range" id="timescale" min="50" max="1000" value="500" step="50">
+      <select id="timescalePreset" onchange="applyTimePreset(this.value)">
+        <option value="100">100 muestras (rápido)</option>
+        <option value="250">250 muestras</option>
+        <option value="500" selected>500 muestras</option>
+        <option value="750">750 muestras</option>
+        <option value="1000">1000 muestras (lento)</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label>🔄 Modo de Actualización</label>
+      <select id="updateMode">
+        <option value="continuous">Continuo</option>
+        <option value="single" selected>Disparo Único</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label>📈 Interpolación</label>
+      <select id="interpolation" onchange="updateInterpolation()">
+        <option value="0">Sin interpolación</option>
+        <option value="0.1" selected>Suave</option>
+        <option value="0.3">Muy suave</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Controles de Trigger -->
+  <div class="trigger-controls">
+    <h3>⚡ Trigger</h3>
+    <div class="trigger-grid">
+      <div class="control-group">
+        <label>Canal</label>
+        <select id="triggerChannel">
+          <option value="none">Deshabilitado</option>
+          <option value="ch1">Canal 1</option>
+          <option value="ch2">Canal 2</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Nivel</label>
+        <input id="triggerLevel" type="number" value="2048" min="0" max="4095">
+      </div>
+      <div class="control-group">
+        <label>Modo</label>
+        <select id="triggerMode">
+          <option value="rising">Flanco Ascendente ↗</option>
+          <option value="falling">Flanco Descendente ↘</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Acciones</label>
+        <button class="btn btn-secondary" onclick="clearADCChart()">Limpiar</button>
       </div>
     </div>
   </div>
 
-  <!-- SECCIÓN OSCILOSCOPIO -->
-  <div class="content-section" id="osciloscopio">
-    <div class="card">
-      <h2>Osciloscopio Digital</h2>
-      
-      <div class="adc-controls">
-        <button class="btn" data-cmd="CH1ON">Canal 1 ON</button>
-        <button class="btn btn-danger" data-cmd="CH1OFF">Canal 1 OFF</button>
-        <button class="btn" data-cmd="CH2ON">Canal 2 ON</button>
-        <button class="btn btn-danger" data-cmd="CH2OFF">Canal 2 OFF</button>
-      </div>
-
-      <div class="adc-trigger-controls">
-        <div class="form-group">
-          <label>Trigger</label>
-          <select id="triggerChannel" class="form-control">
-            <option value="none">Deshabilitado</option>
-            <option value="ch1">Canal 1</option>
-            <option value="ch2">Canal 2</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Nivel</label>
-          <input id="triggerLevel" type="number" class="form-control" value="2048" min="0" max="4095">
-        </div>
-        <div class="form-group">
-          <label>Modo</label>
-          <select id="triggerMode" class="form-control">
-            <option value="rising">Flanco Ascendente</option>
-            <option value="falling">Flanco Descendente</option>
-          </select>
-        </div>
-        <button class="btn btn-secondary" id="clearADCBtn">Limpiar</button>
-      </div>
-
-      <div class="chart-container">
-        <canvas id="chartADC"></canvas>
-        <div class="download-options">
-          <button class="btn btn-secondary" data-action="download-adc-png">Descargar PNG</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SECCIÓN CONEXIÓN -->
-  <div class="content-section" id="conexion">
-    <div class="card">
-      <h2>Conexión y Control</h2>
-      <form id="commandForm">
-        <div class="form-inline">
-          <div class="form-group">
-            <label>ID del Dispositivo</label>
-            <input id="deviceId" type="text" class="form-control" placeholder="ESP32_A1" required>
-          </div>
-          <button type="button" class="btn" id="connectBtn">Conectar</button>
-        </div>
-
-        <div class="form-inline" style="margin-top: 1rem;">
-          <div class="form-group">
-            <label>Comando</label>
-            <input id="inputData" type="text" class="form-control" placeholder="-10;1000A o 1.57;1000F o S1000">
-          </div>
-          <button type="submit" class="btn">Enviar</button>
-        </div>
-      </form>
-      
-      <div class="form-group" style="margin-top: 1.5rem;">
-        <label>Consola</label>
-        <pre id="log" class="console-box"></pre>
-      </div>
-    </div>
+  <!-- Gráfico -->
+  <div class="chart-container">
+    <canvas id="chartADC"></canvas>
   </div>
 </div>
 
 <script>
-// Cargar Socket.IO dinámicamente
-function loadSocketIO() {
-  return new Promise((resolve, reject) => {
-    // Primero intentar cargar desde el servidor
-    const script1 = document.createElement('script');
-    script1.src = '/socket.io/socket.io.js';
-    script1.onload = () => {
-      console.log('✅ Socket.IO cargado desde servidor');
-      resolve();
-    };
-    script1.onerror = () => {
-      console.log('⚠️ No se pudo cargar desde servidor, intentando CDN...');
-      // Si falla, intentar desde CDN
-      const script2 = document.createElement('script');
-      script2.src = 'https://cdn.socket.io/4.7.2/socket.io.min.js';
-      script2.crossOrigin = 'anonymous';
-      script2.onload = () => {
-        console.log('✅ Socket.IO cargado desde CDN');
-        resolve();
-      };
-      script2.onerror = () => {
-        console.error('❌ No se pudo cargar Socket.IO');
-        reject(new Error('Socket.IO no disponible'));
-      };
-      document.head.appendChild(script2);
-    };
-    document.head.appendChild(script1);
-  });
-}
-
 // Variables globales
-let socket;
-let currentDevice = null;
-let latestMagnitude = NaN;
-let latestPhase = NaN;
 let adcBuffer = { ch1: [], ch2: [] };
 let sampleCounter = 0;
 let triggerArmed = false;
 let triggerTriggered = false;
-const MAX_ADC_SAMPLES = 500;
 
-// Inicializar Socket.IO
-async function initializeSocket() {
-  try {
-    // Esperar a que Socket.IO esté cargado
-    await loadSocketIO();
-    
-    if (typeof io === 'undefined') {
-      throw new Error('Socket.IO no disponible');
-    }
-    
-    socket = io();
-    console.log('✅ Socket.IO conectado');
-    
-    // Configurar eventos de socket
-    socket.on("update_data", ({ deviceId, payload }) => {
-      if (!currentDevice || deviceId !== currentDevice) return;
-      if (typeof payload === "string") parsePlot(payload);
-      else if (payload.msg) parsePlot(payload.msg);
-    });
+// Configuración de escalas
+let ch1Scale = 4095;
+let ch1Offset = 2048;
+let ch2Scale = 4095;
+let ch2Offset = 2048;
+let maxSamples = 500;
+let updateMode = 'single';
+let interpolationTension = 0.1;
 
-    socket.on("adc_data", ({ deviceId, data }) => {
-      if (!currentDevice || deviceId !== currentDevice) return;
-      parseADCData(data);
-    });
-    
-    socket.on('connect', () => {
-      log('✅ Conectado al servidor');
-      console.log('✅ Conectado al servidor MQTT');
-    });
-    
-    socket.on('disconnect', () => {
-      log('⚠️ Desconectado del servidor');
-      console.log('⚠️ Desconectado del servidor MQTT');
-    });
-    
-    socket.on('error', (error) => {
-      log('❌ Error de conexión: ' + error);
-      console.error('❌ Error:', error);
-    });
-    
-  } catch (error) {
-    console.error('❌ Error al inicializar Socket.IO:', error);
-    log('❌ No se pudo conectar al servidor. Asegúrate de que el servidor esté corriendo.');
-  }
-}
-
-// Configuración de Charts
-Chart.defaults.font.family = 'Roboto';
-Chart.defaults.font.size = 12;
-Chart.defaults.color = '#5a6c7d';
-
-// Crear gráficos
-const chartMag = new Chart(document.getElementById('chartMag'), {
-  type: 'line',
-  data: {
-    labels: [],
-    datasets: [{
-      label: 'Magnitud [dB]',
-      data: [],
-      borderColor: '#2c5aa0',
-      backgroundColor: 'rgba(44, 90, 160, 0.1)',
-      borderWidth: 2,
-      fill: true,
-      tension: 0.3,
-      pointRadius: 3,
-      pointBackgroundColor: '#2c5aa0'
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: true } },
-    scales: {
-      x: {
-        type: 'logarithmic',
-        title: { display: true, text: 'Frecuencia [rad/s]' },
-        grid: { color: 'rgba(0,0,0,0.05)' }
-      },
-      y: {
-        title: { display: true, text: 'Magnitud [dB]' },
-        grid: { color: 'rgba(0,0,0,0.05)' }
-      }
-    }
-  }
-});
-
-const chartPhase = new Chart(document.getElementById('chartPhase'), {
-  type: 'line',
-  data: {
-    labels: [],
-    datasets: [{
-      label: 'Fase [rad]',
-      data: [],
-      borderColor: '#2c5aa0',
-      backgroundColor: 'rgba(44, 90, 160, 0.1)',
-      borderWidth: 2,
-      fill: true,
-      tension: 0.3,
-      pointRadius: 3,
-      pointBackgroundColor: '#2c5aa0'
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: true } },
-    scales: {
-      x: {
-        type: 'logarithmic',
-        title: { display: true, text: 'Frecuencia [rad/s]' },
-        grid: { color: 'rgba(0,0,0,0.05)' }
-      },
-      y: {
-        title: { display: true, text: 'Fase [rad]' },
-        grid: { color: 'rgba(0,0,0,0.05)' }
-      }
-    }
-  }
-});
-
-const chartNyquist = new Chart(document.getElementById('chartNyquist'), {
-  type: 'scatter',
-  data: {
-    datasets: [{
-      label: 'Nyquist',
-      data: [],
-      borderColor: '#2c5aa0',
-      backgroundColor: 'rgba(44, 90, 160, 0.5)',
-      borderWidth: 2,
-      pointRadius: 4,
-      showLine: true,
-      fill: false,
-      tension: 0.2
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: true } },
-    scales: {
-      x: {
-        title: { display: true, text: 'Re' },
-        grid: { color: 'rgba(0,0,0,0.05)' }
-      },
-      y: {
-        title: { display: true, text: 'Im' },
-        grid: { color: 'rgba(0,0,0,0.05)' }
-      }
-    }
-  }
-});
-
+// Crear gráfico
 const chartADC = new Chart(document.getElementById('chartADC'), {
   type: 'line',
   data: {
@@ -777,8 +424,12 @@ const chartADC = new Chart(document.getElementById('chartADC'), {
   options: {
     responsive: true,
     maintainAspectRatio: false,
+    animation: false,
     interaction: { mode: 'index', intersect: false },
-    plugins: { legend: { display: true } },
+    plugins: { 
+      legend: { display: true },
+      tooltip: { enabled: true }
+    },
     scales: {
       x: {
         title: { display: true, text: 'Muestras' },
@@ -786,14 +437,14 @@ const chartADC = new Chart(document.getElementById('chartADC'), {
       },
       y: {
         position: 'left',
-        title: { display: true, text: 'Canal 1 (0-4095)' },
+        title: { display: true, text: 'Canal 1 (LSB)' },
         min: 0,
         max: 4095,
         grid: { color: 'rgba(44, 90, 160, 0.1)' }
       },
       y1: {
         position: 'right',
-        title: { display: true, text: 'Canal 2 (0-4095)' },
+        title: { display: true, text: 'Canal 2 (LSB)' },
         min: 0,
         max: 4095,
         grid: { drawOnChartArea: false }
@@ -802,105 +453,92 @@ const chartADC = new Chart(document.getElementById('chartADC'), {
   }
 });
 
-// Funciones de utilidad
-function log(msg) {
-  const logEl = document.getElementById("log");
-  logEl.textContent += msg + "\n";
-  logEl.scrollTop = logEl.scrollHeight;
-}
+// Función para actualizar escalas del gráfico
+function updateChartScales() {
+  const ch1Min = Math.max(0, ch1Offset - ch1Scale);
+  const ch1Max = Math.min(4095, ch1Offset + ch1Scale);
+  const ch2Min = Math.max(0, ch2Offset - ch2Scale);
+  const ch2Max = Math.min(4095, ch2Offset + ch2Scale);
 
-function showSection(sectionId) {
-  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+  chartADC.options.scales.y.min = ch1Min;
+  chartADC.options.scales.y.max = ch1Max;
+  chartADC.options.scales.y1.min = ch2Min;
+  chartADC.options.scales.y1.max = ch2Max;
   
-  const section = document.getElementById(sectionId);
-  if (section) {
-    section.classList.add('active');
-  }
-  
-  document.querySelectorAll('.menu-item').forEach(item => {
-    if (item.getAttribute('data-section') === sectionId) {
-      item.classList.add('active');
-    }
-  });
+  chartADC.update('none');
 }
 
-// Funciones de conexión
-function connectDevice() {
-  const id = document.getElementById("deviceId").value.trim();
-  if (!id) return log("⚠️ Ingrese un ID de dispositivo.");
-  if (!socket || !socket.connected) {
-    log("❌ Socket.IO no está conectado. Espera un momento o recarga la página.");
-    return;
-  }
-  
-  currentDevice = id;
-  socket.emit("join_device", id);
-  socket.emit("connect_device", id);
-  log(`📡 Intentando conectar con ${id}...`);
+// Event listeners para controles
+document.getElementById('ch1Scale').addEventListener('input', function(e) {
+  ch1Scale = parseInt(e.target.value);
+  document.getElementById('ch1ScaleValue').textContent = ch1Scale + ' LSB';
+  document.getElementById('ch1ScaleDisplay').textContent = ch1Scale + ' LSB';
+  updateChartScales();
+});
+
+document.getElementById('ch1Offset').addEventListener('input', function(e) {
+  ch1Offset = parseInt(e.target.value);
+  document.getElementById('ch1OffsetValue').textContent = ch1Offset;
+  updateChartScales();
+});
+
+document.getElementById('ch2Scale').addEventListener('input', function(e) {
+  ch2Scale = parseInt(e.target.value);
+  document.getElementById('ch2ScaleValue').textContent = ch2Scale + ' LSB';
+  document.getElementById('ch2ScaleDisplay').textContent = ch2Scale + ' LSB';
+  updateChartScales();
+});
+
+document.getElementById('ch2Offset').addEventListener('input', function(e) {
+  ch2Offset = parseInt(e.target.value);
+  document.getElementById('ch2OffsetValue').textContent = ch2Offset;
+  updateChartScales();
+});
+
+document.getElementById('timescale').addEventListener('input', function(e) {
+  maxSamples = parseInt(e.target.value);
+  document.getElementById('timescaleValue').textContent = maxSamples + ' muestras';
+  document.getElementById('timeScaleDisplay').textContent = maxSamples + ' muestras';
+});
+
+document.getElementById('updateMode').addEventListener('change', function(e) {
+  updateMode = e.target.value;
+});
+
+function updateInterpolation() {
+  interpolationTension = parseFloat(document.getElementById('interpolation').value);
+  chartADC.data.datasets[0].tension = interpolationTension;
+  chartADC.data.datasets[1].tension = interpolationTension;
+  chartADC.update('none');
 }
 
-function sendData(e) {
-  e.preventDefault();
-  const v = document.getElementById("inputData").value.trim();
-  const id = document.getElementById("deviceId").value.trim();
-  if (!v || !id) return;
-  if (!socket || !socket.connected) {
-    log("❌ Socket.IO no está conectado");
-    return;
-  }
-  
-  socket.emit("send_command", { deviceId: id, command: v });
-  log(`📤 Enviado a ${id}: ${v}`);
-  document.getElementById("inputData").value = "";
+function applyPresetCh1(value) {
+  const scale = parseInt(value);
+  document.getElementById('ch1Scale').value = scale;
+  ch1Scale = scale;
+  document.getElementById('ch1ScaleValue').textContent = scale + ' LSB';
+  document.getElementById('ch1ScaleDisplay').textContent = scale + ' LSB';
+  updateChartScales();
 }
 
-function sendCommand(cmd) {
-  const id = document.getElementById("deviceId").value.trim();
-  if (!id) {
-    log("⚠️ Conecta primero a un dispositivo");
-    return;
-  }
-  if (!socket || !socket.connected) {
-    log("❌ Socket.IO no está conectado");
-    return;
-  }
-  
-  socket.emit("send_command", { deviceId: id, command: cmd });
-  log(`📤 Comando: ${cmd}`);
+function applyPresetCh2(value) {
+  const scale = parseInt(value);
+  document.getElementById('ch2Scale').value = scale;
+  ch2Scale = scale;
+  document.getElementById('ch2ScaleValue').textContent = scale + ' LSB';
+  document.getElementById('ch2ScaleDisplay').textContent = scale + ' LSB';
+  updateChartScales();
 }
 
-// Funciones de parseo
-function parsePlot(msg) {
-  const m = msg.match(/^([-+]?[0-9]*\.?[0-9]+);([0-9]*\.?[0-9]+)([AF])$/);
-  if (!m) {
-    log("⚠️ Formato inválido: " + msg);
-    return;
-  }
-  const val = parseFloat(m[1]), freq = parseFloat(m[2]), type = m[3];
-
-  if (type === "A") {
-    chartMag.data.labels.push(freq);
-    chartMag.data.datasets[0].data.push(val);
-    chartMag.update('none');
-    latestMagnitude = Math.pow(10, val / 20);
-    if (!isNaN(latestPhase)) addNyquist(latestMagnitude, latestPhase);
-  } else if (type === "F") {
-    chartPhase.data.labels.push(freq);
-    chartPhase.data.datasets[0].data.push(val);
-    chartPhase.update('none');
-    latestPhase = val;
-    if (!isNaN(latestMagnitude)) addNyquist(latestMagnitude, latestPhase);
-  }
+function applyTimePreset(value) {
+  const samples = parseInt(value);
+  document.getElementById('timescale').value = samples;
+  maxSamples = samples;
+  document.getElementById('timescaleValue').textContent = samples + ' muestras';
+  document.getElementById('timeScaleDisplay').textContent = samples + ' muestras';
 }
 
-function addNyquist(mag, phase) {
-  const re = mag * Math.cos(phase);
-  const im = mag * Math.sin(phase);
-  chartNyquist.data.datasets[0].data.push({ x: re, y: im });
-  chartNyquist.update('none');
-}
-
+// Simular datos ADC (para demostración)
 function parseADCData(data) {
   const match = data.match(/CH1:(\d+),CH2:(\d+)/);
   if (!match) return;
@@ -911,6 +549,8 @@ function parseADCData(data) {
   adcBuffer.ch1.push(ch1);
   adcBuffer.ch2.push(ch2);
   sampleCounter++;
+  
+  document.getElementById('sampleCountDisplay').textContent = sampleCounter;
 
   const triggerChannel = document.getElementById('triggerChannel').value;
   const triggerLevel = parseInt(document.getElementById('triggerLevel').value);
@@ -939,23 +579,32 @@ function parseADCData(data) {
     triggerTriggered = true;
   }
 
-  if (adcBuffer.ch1.length >= MAX_ADC_SAMPLES && triggerTriggered) {
+  const shouldUpdate = updateMode === 'continuous' || 
+                      (adcBuffer.ch1.length >= maxSamples && triggerTriggered);
+
+  if (shouldUpdate) {
     updateADCChart();
-    adcBuffer.ch1 = [];
-    adcBuffer.ch2 = [];
-    sampleCounter = 0;
-    triggerArmed = false;
-    triggerTriggered = false;
+    if (updateMode === 'single') {
+      adcBuffer.ch1 = [];
+      adcBuffer.ch2 = [];
+      sampleCounter = 0;
+      triggerArmed = false;
+      triggerTriggered = false;
+    }
   }
 }
 
 function updateADCChart() {
+  const dataLength = Math.min(adcBuffer.ch1.length, maxSamples);
+  const startIdx = Math.max(0, adcBuffer.ch1.length - maxSamples);
+  
   chartADC.data.labels = [];
-  for (let i = 0; i < adcBuffer.ch1.length; i++) {
+  for (let i = 0; i < dataLength; i++) {
     chartADC.data.labels.push(i.toString());
   }
-  chartADC.data.datasets[0].data = adcBuffer.ch1;
-  chartADC.data.datasets[1].data = adcBuffer.ch2;
+  
+  chartADC.data.datasets[0].data = adcBuffer.ch1.slice(startIdx);
+  chartADC.data.datasets[1].data = adcBuffer.ch2.slice(startIdx);
   chartADC.update('none');
 }
 
@@ -967,155 +616,28 @@ function clearADCChart() {
   adcBuffer.ch1 = [];
   adcBuffer.ch2 = [];
   sampleCounter = 0;
+  triggerArmed = false;
+  triggerTriggered = false;
+  document.getElementById('sampleCountDisplay').textContent = '0';
 }
 
-// Funciones de descarga
-function downloadChart(chart, filename) {
-  const link = document.createElement('a');
-  link.href = chart.toBase64Image();
-  link.download = filename;
-  link.click();
+function sendCommand(cmd) {
+  console.log('Comando enviado:', cmd);
+  // Aquí conectar con tu sistema real
 }
 
-function downloadBodeCSV(type) {
-  let csv = '';
-  let data, labels;
-  
-  if (type === 'magnitude') {
-    csv = 'Frecuencia [rad/s],Magnitud [dB]\n';
-    labels = chartMag.data.labels;
-    data = chartMag.data.datasets[0].data;
-  } else {
-    csv = 'Frecuencia [rad/s],Fase [rad]\n';
-    labels = chartPhase.data.labels;
-    data = chartPhase.data.datasets[0].data;
-  }
-  
-  for (let i = 0; i < labels.length; i++) {
-    csv += `${labels[i]},${data[i]}\n`;
-  }
-  
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = type === 'magnitude' ? 'magnitud.csv' : 'fase.csv';
-  link.click();
-  window.URL.revokeObjectURL(url);
+// Simulación de datos para prueba
+function simulateData() {
+  const t = Date.now() / 100;
+  const ch1 = 2048 + Math.sin(t) * 200 + Math.random() * 50;
+  const ch2 = 2048 + Math.cos(t * 1.5) * 500 + Math.random() * 30;
+  parseADCData(`CH1:${Math.round(ch1)},CH2:${Math.round(ch2)}`);
 }
 
-function downloadNyquistCSV() {
-  let csv = 'Re,Im\n';
-  const data = chartNyquist.data.datasets[0].data;
-  
-  for (let i = 0; i < data.length; i++) {
-    csv += `${data[i].x},${data[i].y}\n`;
-  }
-  
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'nyquist.csv';
-  link.click();
-  window.URL.revokeObjectURL(url);
-}
+// Iniciar simulación (comentar esto cuando conectes con datos reales)
+setInterval(simulateData, 10);
 
-function downloadAllCharts() {
-  downloadChart(chartMag, 'magnitud.png');
-  downloadChart(chartPhase, 'fase.png');
-  downloadChart(chartNyquist, 'nyquist.png');
-  downloadChart(chartADC, 'osciloscopio.png');
-  downloadBodeCSV('magnitude');
-  downloadBodeCSV('phase');
-  downloadNyquistCSV();
-  log('✅ Gráficos descargados correctamente');
-}
-
-// Inicializar eventos después de cargar el DOM
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('✅ Inicializando FRA Monitor...');
-  
-  // Inicializar Socket.IO
-  initializeSocket();
-  
-  // Menú de navegación
-  const menuItems = document.querySelectorAll('.menu-item');
-  menuItems.forEach(function(item) {
-    item.addEventListener('click', function() {
-      const sectionId = this.getAttribute('data-section');
-      showSection(sectionId);
-    });
-  });
-
-  // Botón de descargar todo
-  const downloadAllBtn = document.getElementById('downloadAllBtn');
-  if (downloadAllBtn) {
-    downloadAllBtn.addEventListener('click', function() {
-      downloadAllCharts();
-    });
-  }
-
-  // Botón conectar
-  const connectBtn = document.getElementById('connectBtn');
-  if (connectBtn) {
-    connectBtn.addEventListener('click', function() {
-      connectDevice();
-    });
-  }
-
-  // Formulario de comandos
-  const commandForm = document.getElementById('commandForm');
-  if (commandForm) {
-    commandForm.addEventListener('submit', function(e) {
-      sendData(e);
-    });
-  }
-
-  // Botones de canal ADC
-  const cmdButtons = document.querySelectorAll('[data-cmd]');
-  cmdButtons.forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      const cmd = this.getAttribute('data-cmd');
-      sendCommand(cmd);
-    });
-  });
-
-  // Botón limpiar ADC
-  const clearADCBtn = document.getElementById('clearADCBtn');
-  if (clearADCBtn) {
-    clearADCBtn.addEventListener('click', function() {
-      clearADCChart();
-    });
-  }
-
-  // Botones de descarga individual
-  const actionButtons = document.querySelectorAll('[data-action]');
-  actionButtons.forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      const action = this.getAttribute('data-action');
-      
-      if (action === 'download-mag-png') {
-        downloadChart(chartMag, 'magnitud.png');
-      } else if (action === 'download-mag-csv') {
-        downloadBodeCSV('magnitude');
-      } else if (action === 'download-phase-png') {
-        downloadChart(chartPhase, 'fase.png');
-      } else if (action === 'download-phase-csv') {
-        downloadBodeCSV('phase');
-      } else if (action === 'download-nyquist-png') {
-        downloadChart(chartNyquist, 'nyquist.png');
-      } else if (action === 'download-nyquist-csv') {
-        downloadNyquistCSV();
-      } else if (action === 'download-adc-png') {
-        downloadChart(chartADC, 'osciloscopio.png');
-      }
-    });
-  });
-  
-  log('✅ FRA Monitor inicializado correctamente');
-  console.log('✅ FRA Monitor listo para usar');
-});
+console.log('✅ Osciloscopio mejorado inicializado');
 </script>
 
 </body>
