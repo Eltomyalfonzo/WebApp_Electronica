@@ -453,6 +453,56 @@
       margin-top: 1rem;
     }
 
+    /* NUEVOS ESTILOS PARA MULTI-MEDICIÓN */
+    .measurement-controls {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      border-left: 4px solid #2c5aa0;
+    }
+
+    .measurement-controls .form-inline {
+      margin-top: 0.5rem;
+    }
+
+    .measurement-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      padding: 0.8rem;
+      background: #f8f9fa;
+      border-radius: 6px;
+      min-height: 45px;
+      align-items: center;
+    }
+
+    .measurement-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .measurement-tag .color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+
+    .empty-measurements {
+      color: #8899a6;
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
     @media (max-width: 1024px) {
       .sidebar {
         transform: translateX(-100%);
@@ -578,6 +628,25 @@
   <div class="content-section" id="bode">
     <div class="card">
       <h2>Diagrama de Bode</h2>
+      
+      <!-- Controles de medición -->
+      <div class="measurement-controls">
+        <div class="form-inline">
+          <div class="form-group" style="flex: 2;">
+            <label>Etiqueta de Medición</label>
+            <input id="measurementLabel" type="text" class="form-control" placeholder="Ej: Filtro RC 1kHz" value="Medición 1">
+          </div>
+          <button class="btn" id="startMeasurementBtn">🚀 Nueva Medición</button>
+          <button class="btn btn-danger" id="clearBodeBtn">🗑️ Borrar Todo</button>
+          <button class="btn btn-secondary" id="clearLastBodeBtn">↩️ Borrar Última</button>
+        </div>
+      </div>
+      
+      <!-- Listado de mediciones -->
+      <div id="measurementList" class="measurement-list">
+        <span class="empty-measurements">No hay mediciones todavía</span>
+      </div>
+      
       <div class="charts-grid">
         <div class="chart-container">
           <h3>Magnitud [dB]</h3>
@@ -603,6 +672,25 @@
   <div class="content-section" id="nyquist">
     <div class="card">
       <h2>Diagrama de Nyquist</h2>
+      
+      <!-- Controles de medición -->
+      <div class="measurement-controls">
+        <div class="form-inline">
+          <div class="form-group" style="flex: 2;">
+            <label>Etiqueta de Medición</label>
+            <input id="measurementLabelNyquist" type="text" class="form-control" placeholder="Ej: Filtro RC 1kHz" value="Medición 1">
+          </div>
+          <button class="btn" id="startMeasurementNyquistBtn">🚀 Nueva Medición</button>
+          <button class="btn btn-danger" id="clearNyquistBtn">🗑️ Borrar Todo</button>
+          <button class="btn btn-secondary" id="clearLastNyquistBtn">↩️ Borrar Última</button>
+        </div>
+      </div>
+      
+      <!-- Listado de mediciones -->
+      <div id="measurementListNyquist" class="measurement-list">
+        <span class="empty-measurements">No hay mediciones todavía</span>
+      </div>
+      
       <div class="chart-container full-width-chart">
         <canvas id="chartNyquist"></canvas>
         <div class="download-options">
@@ -839,6 +927,14 @@ let triggerArmed = false;
 let triggerTriggered = false;
 let MAX_ADC_SAMPLES = 500;
 
+// Variables para multi-medición
+let measurements = [];
+let currentMeasurementIndex = -1;
+let measurementColors = [
+  '#2c5aa0', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', 
+  '#1abc9c', '#34495e', '#e67e22', '#95a5a6', '#c0392b'
+];
+
 // Variables para osciloscopio mejorado
 let ch1Scale = 4095;
 let ch1Offset = 2048;
@@ -896,27 +992,22 @@ Chart.defaults.font.family = 'Roboto';
 Chart.defaults.font.size = 12;
 Chart.defaults.color = '#5a6c7d';
 
-// Crear gráficos
+// Crear gráficos con soporte multi-medición
 const chartMag = new Chart(document.getElementById('chartMag'), {
   type: 'line',
   data: {
-    labels: [],
-    datasets: [{
-      label: 'Magnitud [dB]',
-      data: [],
-      borderColor: '#2c5aa0',
-      backgroundColor: 'rgba(44, 90, 160, 0.1)',
-      borderWidth: 2,
-      fill: true,
-      tension: 0.3,
-      pointRadius: 3,
-      pointBackgroundColor: '#2c5aa0'
-    }]
+    datasets: []
   },
   options: {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: true } },
+    plugins: { 
+      legend: { display: true, position: 'top' },
+      tooltip: {
+        mode: 'index',
+        intersect: false
+      }
+    },
     scales: {
       x: {
         type: 'logarithmic',
@@ -934,23 +1025,18 @@ const chartMag = new Chart(document.getElementById('chartMag'), {
 const chartPhase = new Chart(document.getElementById('chartPhase'), {
   type: 'line',
   data: {
-    labels: [],
-    datasets: [{
-      label: 'Fase [rad]',
-      data: [],
-      borderColor: '#2c5aa0',
-      backgroundColor: 'rgba(44, 90, 160, 0.1)',
-      borderWidth: 2,
-      fill: true,
-      tension: 0.3,
-      pointRadius: 3,
-      pointBackgroundColor: '#2c5aa0'
-    }]
+    datasets: []
   },
   options: {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: true } },
+    plugins: { 
+      legend: { display: true, position: 'top' },
+      tooltip: {
+        mode: 'index',
+        intersect: false
+      }
+    },
     scales: {
       x: {
         type: 'logarithmic',
@@ -968,22 +1054,21 @@ const chartPhase = new Chart(document.getElementById('chartPhase'), {
 const chartNyquist = new Chart(document.getElementById('chartNyquist'), {
   type: 'scatter',
   data: {
-    datasets: [{
-      label: 'Nyquist',
-      data: [],
-      borderColor: '#2c5aa0',
-      backgroundColor: 'rgba(44, 90, 160, 0.5)',
-      borderWidth: 2,
-      pointRadius: 4,
-      showLine: true,
-      fill: false,
-      tension: 0.2
-    }]
+    datasets: []
   },
   options: {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: true } },
+    plugins: { 
+      legend: { display: true, position: 'top' },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return `${context.dataset.label}: Re=${context.parsed.x.toFixed(3)}, Im=${context.parsed.y.toFixed(3)}`;
+          }
+        }
+      }
+    },
     scales: {
       x: {
         title: { display: true, text: 'Re' },
@@ -1123,6 +1208,147 @@ function sendCommand(cmd) {
   log(`📤 Comando: ${cmd}`);
 }
 
+// Funciones para gestión de mediciones
+function startNewMeasurement() {
+  const label = document.getElementById('measurementLabel').value.trim() || `Medición ${measurements.length + 1}`;
+  const color = measurementColors[measurements.length % measurementColors.length];
+  
+  const newMeasurement = {
+    label: label,
+    color: color,
+    magnitude: {
+      frequencies: [],
+      values: []
+    },
+    phase: {
+      frequencies: [],
+      values: []
+    },
+    nyquist: []
+  };
+  
+  measurements.push(newMeasurement);
+  currentMeasurementIndex = measurements.length - 1;
+  
+  updateMeasurementList();
+  updateBodeCharts();
+  updateNyquistChart();
+  
+  log(`📊 Nueva medición iniciada: ${label}`);
+  
+  // Incrementar contador para próxima medición
+  document.getElementById('measurementLabel').value = `Medición ${measurements.length + 1}`;
+  document.getElementById('measurementLabelNyquist').value = `Medición ${measurements.length + 1}`;
+  
+  // Enviar comando STARTFR
+  sendCommand('STARTFR');
+}
+
+function updateBodeCharts() {
+  // Actualizar gráfico de magnitud
+  chartMag.data.datasets = measurements.map(m => ({
+    label: m.label,
+    data: m.magnitude.frequencies.map((f, i) => ({ x: f, y: m.magnitude.values[i] })),
+    borderColor: m.color,
+    backgroundColor: hexToRGBA(m.color, 0.1),
+    borderWidth: 2,
+    fill: false,
+    tension: 0.3,
+    pointRadius: 3,
+    pointBackgroundColor: m.color
+  }));
+  chartMag.update('none');
+  
+  // Actualizar gráfico de fase
+  chartPhase.data.datasets = measurements.map(m => ({
+    label: m.label,
+    data: m.phase.frequencies.map((f, i) => ({ x: f, y: m.phase.values[i] })),
+    borderColor: m.color,
+    backgroundColor: hexToRGBA(m.color, 0.1),
+    borderWidth: 2,
+    fill: false,
+    tension: 0.3,
+    pointRadius: 3,
+    pointBackgroundColor: m.color
+  }));
+  chartPhase.update('none');
+}
+
+function updateNyquistChart() {
+  chartNyquist.data.datasets = measurements.map(m => ({
+    label: m.label,
+    data: m.nyquist,
+    borderColor: m.color,
+    backgroundColor: hexToRGBA(m.color, 0.5),
+    borderWidth: 2,
+    pointRadius: 4,
+    showLine: true,
+    fill: false,
+    tension: 0.2
+  }));
+  chartNyquist.update('none');
+}
+
+function updateMeasurementList() {
+  const listBode = document.getElementById('measurementList');
+  const listNyquist = document.getElementById('measurementListNyquist');
+  
+  if (measurements.length === 0) {
+    listBode.innerHTML = '<span class="empty-measurements">No hay mediciones todavía</span>';
+    listNyquist.innerHTML = '<span class="empty-measurements">No hay mediciones todavía</span>';
+    return;
+  }
+  
+  const html = measurements.map((m, i) => `
+    <div class="measurement-tag" style="background-color: ${m.color};">
+      <span class="color-dot" style="background-color: ${m.color};"></span>
+      <span>${m.label}</span>
+      <span>(${m.magnitude.values.length} pts)</span>
+    </div>
+  `).join('');
+  
+  listBode.innerHTML = html;
+  listNyquist.innerHTML = html;
+}
+
+function clearAllBode() {
+  measurements = [];
+  currentMeasurementIndex = -1;
+  latestMagnitude = NaN;
+  latestPhase = NaN;
+  
+  updateBodeCharts();
+  updateNyquistChart();
+  updateMeasurementList();
+  
+  document.getElementById('measurementLabel').value = 'Medición 1';
+  document.getElementById('measurementLabelNyquist').value = 'Medición 1';
+  
+  log('🗑️ Todas las mediciones borradas');
+}
+
+function clearLastMeasurement() {
+  if (measurements.length > 0) {
+    const removed = measurements.pop();
+    currentMeasurementIndex = measurements.length - 1;
+    
+    updateBodeCharts();
+    updateNyquistChart();
+    updateMeasurementList();
+    
+    log(`↩️ Medición "${removed.label}" eliminada`);
+  } else {
+    log('⚠️ No hay mediciones para eliminar');
+  }
+}
+
+function hexToRGBA(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 // Funciones de parseo
 function parsePlot(msg) {
   const m = msg.match(/^([-+]?[0-9]*\.?[0-9]+);([0-9]*\.?[0-9]+)([AF])$/);
@@ -1132,26 +1358,40 @@ function parsePlot(msg) {
   }
   const val = parseFloat(m[1]), freq = parseFloat(m[2]), type = m[3];
 
+  // Si no hay medición activa, crear una nueva
+  if (currentMeasurementIndex === -1) {
+    startNewMeasurement();
+  }
+
+  const currentMeasurement = measurements[currentMeasurementIndex];
+
   if (type === "A") {
-    chartMag.data.labels.push(freq);
-    chartMag.data.datasets[0].data.push(val);
-    chartMag.update('none');
+    currentMeasurement.magnitude.frequencies.push(freq);
+    currentMeasurement.magnitude.values.push(val);
+    updateBodeCharts();
+    
     latestMagnitude = Math.pow(10, val / 20);
     if (!isNaN(latestPhase)) addNyquist(latestMagnitude, latestPhase);
   } else if (type === "F") {
-    chartPhase.data.labels.push(freq);
-    chartPhase.data.datasets[0].data.push(val);
-    chartPhase.update('none');
+    currentMeasurement.phase.frequencies.push(freq);
+    currentMeasurement.phase.values.push(val);
+    updateBodeCharts();
+    
     latestPhase = val;
     if (!isNaN(latestMagnitude)) addNyquist(latestMagnitude, latestPhase);
   }
 }
 
 function addNyquist(mag, phase) {
+  if (currentMeasurementIndex === -1) {
+    return;
+  }
+
   const re = mag * Math.cos(phase);
   const im = mag * Math.sin(phase);
-  chartNyquist.data.datasets[0].data.push({ x: re, y: im });
-  chartNyquist.update('none');
+  
+  measurements[currentMeasurementIndex].nyquist.push({ x: re, y: im });
+  updateNyquistChart();
 }
 
 // Función mejorada para actualizar escalas del gráfico
@@ -1259,20 +1499,21 @@ function downloadChart(chart, filename) {
 
 function downloadBodeCSV(type) {
   let csv = '';
-  let data, labels;
   
   if (type === 'magnitude') {
-    csv = 'Frecuencia [rad/s],Magnitud [dB]\n';
-    labels = chartMag.data.labels;
-    data = chartMag.data.datasets[0].data;
+    csv = 'Medición,Frecuencia [rad/s],Magnitud [dB]\n';
+    measurements.forEach(m => {
+      m.magnitude.frequencies.forEach((f, i) => {
+        csv += `${m.label},${f},${m.magnitude.values[i]}\n`;
+      });
+    });
   } else {
-    csv = 'Frecuencia [rad/s],Fase [rad]\n';
-    labels = chartPhase.data.labels;
-    data = chartPhase.data.datasets[0].data;
-  }
-  
-  for (let i = 0; i < labels.length; i++) {
-    csv += `${labels[i]},${data[i]}\n`;
+    csv = 'Medición,Frecuencia [rad/s],Fase [rad]\n';
+    measurements.forEach(m => {
+      m.phase.frequencies.forEach((f, i) => {
+        csv += `${m.label},${f},${m.phase.values[i]}\n`;
+      });
+    });
   }
   
   const blob = new Blob([csv], { type: 'text/csv' });
@@ -1285,12 +1526,12 @@ function downloadBodeCSV(type) {
 }
 
 function downloadNyquistCSV() {
-  let csv = 'Re,Im\n';
-  const data = chartNyquist.data.datasets[0].data;
-  
-  for (let i = 0; i < data.length; i++) {
-    csv += `${data[i].x},${data[i].y}\n`;
-  }
+  let csv = 'Medición,Re,Im\n';
+  measurements.forEach(m => {
+    m.nyquist.forEach(point => {
+      csv += `${m.label},${point.x},${point.y}\n`;
+    });
+  });
   
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = window.URL.createObjectURL(blob);
@@ -1335,6 +1576,48 @@ document.addEventListener('DOMContentLoaded', function() {
       downloadAllCharts();
     });
   }
+
+  // Botones de medición Bode
+  document.getElementById('startMeasurementBtn').addEventListener('click', function() {
+    const id = document.getElementById("deviceId").value.trim();
+    if (!id) {
+      log("⚠️ Conecta primero a un dispositivo");
+      return;
+    }
+    startNewMeasurement();
+  });
+
+  document.getElementById('clearBodeBtn').addEventListener('click', function() {
+    if (confirm('¿Estás seguro de que quieres borrar todas las mediciones?')) {
+      clearAllBode();
+    }
+  });
+
+  document.getElementById('clearLastBodeBtn').addEventListener('click', function() {
+    clearLastMeasurement();
+  });
+
+  // Botones de medición Nyquist (mismo comportamiento)
+  document.getElementById('startMeasurementNyquistBtn').addEventListener('click', function() {
+    const id = document.getElementById("deviceId").value.trim();
+    if (!id) {
+      log("⚠️ Conecta primero a un dispositivo");
+      return;
+    }
+    const label = document.getElementById('measurementLabelNyquist').value.trim();
+    document.getElementById('measurementLabel').value = label;
+    startNewMeasurement();
+  });
+
+  document.getElementById('clearNyquistBtn').addEventListener('click', function() {
+    if (confirm('¿Estás seguro de que quieres borrar todas las mediciones?')) {
+      clearAllBode();
+    }
+  });
+
+  document.getElementById('clearLastNyquistBtn').addEventListener('click', function() {
+    clearLastMeasurement();
+  });
 
   // Botón conectar
   const connectBtn = document.getElementById('connectBtn');
