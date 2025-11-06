@@ -657,7 +657,7 @@
           </div>
         </div>
         <div class="chart-container">
-          <h3>Fase [rad]</h3>
+          <h3>Fase [°]</h3>
           <canvas id="chartPhase"></canvas>
           <div class="download-options">
             <button class="btn btn-secondary" data-action="download-phase-png">Descargar PNG</button>
@@ -1011,7 +1011,7 @@ const chartMag = new Chart(document.getElementById('chartMag'), {
     scales: {
       x: {
         type: 'logarithmic',
-        title: { display: true, text: 'Frecuencia [rad/s]' },
+        title: { display: true, text: 'Frecuencia [Hz]' },
         grid: { color: 'rgba(0,0,0,0.05)' }
       },
       y: {
@@ -1040,11 +1040,11 @@ const chartPhase = new Chart(document.getElementById('chartPhase'), {
     scales: {
       x: {
         type: 'logarithmic',
-        title: { display: true, text: 'Frecuencia [rad/s]' },
+        title: { display: true, text: 'Frecuencia [Hz]' },
         grid: { color: 'rgba(0,0,0,0.05)' }
       },
       y: {
-        title: { display: true, text: 'Fase [rad]' },
+        title: { display: true, text: 'Fase [°]' },
         grid: { color: 'rgba(0,0,0,0.05)' }
       }
     }
@@ -1248,7 +1248,7 @@ function updateBodeCharts() {
   // Actualizar gráfico de magnitud
   chartMag.data.datasets = measurements.map(m => ({
     label: m.label,
-    data: m.magnitude.frequencies.map((f, i) => ({ x: f, y: m.magnitude.values[i] })),
+    data: m.magnitude.frequencies.map((f, i) => ({ x: f * 2 * Math.PI, y: m.magnitude.values[i] })),
     borderColor: m.color,
     backgroundColor: hexToRGBA(m.color, 0.1),
     borderWidth: 2,
@@ -1258,11 +1258,11 @@ function updateBodeCharts() {
     pointBackgroundColor: m.color
   }));
   chartMag.update('none');
-  
+
   // Actualizar gráfico de fase
   chartPhase.data.datasets = measurements.map(m => ({
     label: m.label,
-    data: m.phase.frequencies.map((f, i) => ({ x: f, y: m.phase.values[i] })),
+    data: m.phase.frequencies.map((f, i) => ({ x: f * 2 * Math.PI, y: m.phase.values[i] * 180 / Math.PI })),
     borderColor: m.color,
     backgroundColor: hexToRGBA(m.color, 0.1),
     borderWidth: 2,
@@ -1499,23 +1499,26 @@ function downloadChart(chart, filename) {
 
 function downloadBodeCSV(type) {
   let csv = '';
-  
+
   if (type === 'magnitude') {
-    csv = 'Medición,Frecuencia [rad/s],Magnitud [dB]\n';
+    csv = 'Medición,Frecuencia [Hz],Magnitud [dB]\n';
     measurements.forEach(m => {
       m.magnitude.frequencies.forEach((f, i) => {
-        csv += `${m.label},${f},${m.magnitude.values[i]}\n`;
+        const freqHz = f * 2 * Math.PI;
+        csv += `${m.label},${freqHz},${m.magnitude.values[i]}\n`;
       });
     });
   } else {
-    csv = 'Medición,Frecuencia [rad/s],Fase [rad]\n';
+    csv = 'Medición,Frecuencia [Hz],Fase [°]\n';
     measurements.forEach(m => {
       m.phase.frequencies.forEach((f, i) => {
-        csv += `${m.label},${f},${m.phase.values[i]}\n`;
+        const freqHz = f * 2 * Math.PI;
+        const phaseDeg = m.phase.values[i] * 180 / Math.PI;
+        csv += `${m.label},${freqHz},${phaseDeg}\n`;
       });
     });
   }
-  
+
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
