@@ -1248,7 +1248,7 @@ function updateBodeCharts() {
   // Actualizar gráfico de magnitud
   chartMag.data.datasets = measurements.map(m => ({
     label: m.label,
-    data: m.magnitude.frequencies.map((f, i) => ({ x: f * 2 * Math.PI, y: m.magnitude.values[i] })),
+    data: m.magnitude.frequencies.map((f, i) => ({ x: f , y: m.magnitude.values[i] })),
     borderColor: m.color,
     backgroundColor: hexToRGBA(m.color, 0.1),
     borderWidth: 2,
@@ -1262,7 +1262,7 @@ function updateBodeCharts() {
   // Actualizar gráfico de fase
   chartPhase.data.datasets = measurements.map(m => ({
     label: m.label,
-    data: m.phase.frequencies.map((f, i) => ({ x: f * 2 * Math.PI, y: m.phase.values[i] * 180 / Math.PI })),
+    data: m.phase.frequencies.map((f, i) => ({ x: f , y: m.phase.values[i] * 180 / Math.PI })),
     borderColor: m.color,
     backgroundColor: hexToRGBA(m.color, 0.1),
     borderWidth: 2,
