@@ -578,6 +578,7 @@
   <div class="menu-item active" data-section="inicio">Inicio</div>
   <div class="menu-item" data-section="bode">Diagrama de Bode</div>
   <div class="menu-item" data-section="nyquist">Diagrama de Nyquist</div>
+  <div class="menu-item" data-section="calculos">Cálculos RC/RL</div>
   <div class="menu-item" data-section="osciloscopio">Osciloscopio</div>
   <div class="menu-item" data-section="conexion">Conexión y Control</div>
 </div>
@@ -636,9 +637,9 @@
             <label>Etiqueta de Medición</label>
             <input id="measurementLabel" type="text" class="form-control" placeholder="Ej: Filtro RC 1kHz" value="Medición 1">
           </div>
-          <button class="btn" id="startMeasurementBtn">🚀 Nueva Medición</button>
-          <button class="btn btn-danger" id="clearBodeBtn">🗑️ Borrar Todo</button>
-          <button class="btn btn-secondary" id="clearLastBodeBtn">↩️ Borrar Última</button>
+          <button class="btn" id="startMeasurementBtn">Nueva Medición</button>
+          <button class="btn btn-danger" id="clearBodeBtn">Borrar Todo</button>
+          <button class="btn btn-secondary" id="clearLastBodeBtn">Borrar Última</button>
         </div>
       </div>
       
@@ -680,9 +681,9 @@
             <label>Etiqueta de Medición</label>
             <input id="measurementLabelNyquist" type="text" class="form-control" placeholder="Ej: Filtro RC 1kHz" value="Medición 1">
           </div>
-          <button class="btn" id="startMeasurementNyquistBtn">🚀 Nueva Medición</button>
-          <button class="btn btn-danger" id="clearNyquistBtn">🗑️ Borrar Todo</button>
-          <button class="btn btn-secondary" id="clearLastNyquistBtn">↩️ Borrar Última</button>
+          <button class="btn" id="startMeasurementNyquistBtn">Nueva Medición</button>
+          <button class="btn btn-danger" id="clearNyquistBtn">Borrar Todo</button>
+          <button class="btn btn-secondary" id="clearLastNyquistBtn">Borrar Última</button>
         </div>
       </div>
       
@@ -701,10 +702,57 @@
     </div>
   </div>
 
+  <!-- SECCIÓN CÁLCULOS RC/RL -->
+  <div class="content-section" id="calculos">
+    <div class="card">
+      <h2>Cálculos de Componentes RC/RL</h2>
+      <p>Esta sección permite calcular el valor de un capacitor o inductor en un filtro RC o RL, utilizando las mediciones de Bode realizadas.</p>
+      
+      <div class="measurement-controls">
+        <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Parámetros de Entrada</h3>
+        <div class="form-inline">
+          <div class="form-group" style="flex: 2;">
+            <label>Valor de la Resistencia (Ohms)</label>
+            <input id="resistanceValue" type="number" class="form-control" placeholder="Ej: 1000" step="any" min="0">
+          </div>
+          <button class="btn" id="calculateCapacitor">Calcular C</button>
+          <button class="btn" id="calculateInductor">Calcular L</button>
+        </div>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <h4>Método de Cálculo</h4>
+          <p>El cálculo se basa en la frecuencia de corte (fc) donde la ganancia cae -3dB respecto al valor máximo, promediando todas las mediciones disponibles.</p>
+        </div>
+        <div class="info-item">
+          <h4>Filtro RC (Capacitor)</h4>
+          <p>fc = 1 / (2π × R × C)</p>
+          <p>Por lo tanto: C = 1 / (2π × R × fc)</p>
+        </div>
+        <div class="info-item">
+          <h4>Filtro RL (Inductor)</h4>
+          <p>fc = R / (2π × L)</p>
+          <p>Por lo tanto: L = R / (2π × fc)</p>
+        </div>
+      </div>
+
+      <div id="calculationResults" class="card" style="display: none; background: #f8f9fa; margin-top: 1.5rem;">
+        <h2>Resultados del Cálculo</h2>
+        <div id="resultsContent"></div>
+      </div>
+
+      <div class="card" style="background: #fff3cd; border-left: 4px solid #ffc107; margin-top: 1.5rem;">
+        <h2 style="border: none; padding: 0; margin-bottom: 0.5rem; font-size: 1rem;">Nota Importante</h2>
+        <p style="margin: 0;">Asegúrate de haber realizado al menos una medición completa en la sección de Bode antes de calcular. Los resultados son más precisos con múltiples mediciones.</p>
+      </div>
+    </div>
+  </div>
+
   <!-- SECCIÓN OSCILOSCOPIO MEJORADO -->
   <div class="content-section" id="osciloscopio">
     <div class="card">
-      <h2>🔬 Osciloscopio Digital</h2>
+      <h2>Osciloscopio Digital</h2>
       
       <!-- Barra de información -->
       <div class="info-bar">
@@ -729,7 +777,7 @@
       <!-- Controles de canales mejorados -->
       <div class="channel-controls">
         <div class="channel-panel ch1">
-          <h3>📊 Canal 1 (Azul)</h3>
+          <h3>Canal 1 (Azul)</h3>
           <div class="channel-buttons">
             <button class="btn" data-cmd="CH1ON">ON</button>
             <button class="btn btn-danger" data-cmd="CH1OFF">OFF</button>
@@ -759,7 +807,7 @@
         </div>
 
         <div class="channel-panel ch2">
-          <h3>📊 Canal 2 (Gris)</h3>
+          <h3>Canal 2 (Gris)</h3>
           <div class="channel-buttons">
             <button class="btn" data-cmd="CH2ON">ON</button>
             <button class="btn btn-danger" data-cmd="CH2OFF">OFF</button>
@@ -793,7 +841,7 @@
       <div class="oscilloscope-controls">
         <div class="control-group">
           <label>
-            <span>⏱️ Escala Horizontal</span>
+            <span>Escala Horizontal</span>
             <span class="scale-value" id="timescaleValue">500 muestras</span>
           </label>
           <input type="range" id="timescale" min="50" max="1000" value="500" step="50">
@@ -807,7 +855,7 @@
         </div>
 
         <div class="control-group">
-          <label>🔄 Modo de Actualización</label>
+          <label>Modo de Actualización</label>
           <select id="updateMode" class="form-control">
             <option value="continuous">Continuo</option>
             <option value="single" selected>Disparo Único</option>
@@ -815,7 +863,7 @@
         </div>
 
         <div class="control-group">
-          <label>📈 Interpolación</label>
+          <label>Interpolación</label>
           <select id="interpolation" class="form-control">
             <option value="0">Sin interpolación</option>
             <option value="0.1" selected>Suave</option>
@@ -1394,6 +1442,203 @@ function addNyquist(mag, phase) {
   updateNyquistChart();
 }
 
+// Funciones de cálculo RC/RL
+function findCutoffFrequency(measurement) {
+  if (!measurement.magnitude.values.length) return null;
+  
+  // Encontrar el valor máximo de ganancia
+  const maxGain = Math.max(...measurement.magnitude.values);
+  
+  // Buscar el punto donde la ganancia cae -3dB del máximo
+  const targetGain = maxGain - 3;
+  
+  // Buscar el punto más cercano a -3dB
+  let closestIndex = 0;
+  let minDiff = Math.abs(measurement.magnitude.values[0] - targetGain);
+  
+  for (let i = 1; i < measurement.magnitude.values.length; i++) {
+    const diff = Math.abs(measurement.magnitude.values[i] - targetGain);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closestIndex = i;
+    }
+  }
+  
+  // Retornar la frecuencia de corte en Hz
+  return measurement.magnitude.frequencies[closestIndex];
+}
+
+function calculateCapacitor() {
+  if (measurements.length === 0) {
+    alert('No hay mediciones disponibles. Realiza al menos una medición en la sección de Bode.');
+    return;
+  }
+  
+  const resistance = parseFloat(document.getElementById('resistanceValue').value);
+  if (isNaN(resistance) || resistance <= 0) {
+    alert('Por favor ingresa un valor válido de resistencia mayor a 0.');
+    return;
+  }
+  
+  // Calcular frecuencia de corte promedio de todas las mediciones
+  let cutoffFrequencies = [];
+  let validMeasurements = [];
+  
+  measurements.forEach(m => {
+    const fc = findCutoffFrequency(m);
+    if (fc && fc > 0) {
+      cutoffFrequencies.push(fc);
+      validMeasurements.push(m);
+    }
+  });
+  
+  if (cutoffFrequencies.length === 0) {
+    alert('No se pudo determinar la frecuencia de corte de las mediciones.');
+    return;
+  }
+  
+  // Calcular promedio
+  const avgCutoffHz = cutoffFrequencies.reduce((a, b) => a + b, 0) / cutoffFrequencies.length;
+  
+  // Calcular capacitor: C = 1 / (2π * R * fc)
+  const capacitance = 1 / (2 * Math.PI * resistance * avgCutoffHz);
+  
+  // Mostrar resultados
+  displayResults('Capacitor', resistance, avgCutoffHz, capacitance, validMeasurements, cutoffFrequencies);
+}
+
+function calculateInductor() {
+  if (measurements.length === 0) {
+    alert('No hay mediciones disponibles. Realiza al menos una medición en la sección de Bode.');
+    return;
+  }
+  
+  const resistance = parseFloat(document.getElementById('resistanceValue').value);
+  if (isNaN(resistance) || resistance <= 0) {
+    alert('Por favor ingresa un valor válido de resistencia mayor a 0.');
+    return;
+  }
+  
+  // Calcular frecuencia de corte promedio de todas las mediciones
+  let cutoffFrequencies = [];
+  let validMeasurements = [];
+  
+  measurements.forEach(m => {
+    const fc = findCutoffFrequency(m);
+    if (fc && fc > 0) {
+      cutoffFrequencies.push(fc);
+      validMeasurements.push(m);
+    }
+  });
+  
+  if (cutoffFrequencies.length === 0) {
+    alert('No se pudo determinar la frecuencia de corte de las mediciones.');
+    return;
+  }
+  
+  // Calcular promedio
+  const avgCutoffHz = cutoffFrequencies.reduce((a, b) => a + b, 0) / cutoffFrequencies.length;
+  
+  // Calcular inductor: L = R / (2π * fc)
+  const inductance = resistance / (2 * Math.PI * avgCutoffHz);
+  
+  // Mostrar resultados
+  displayResults('Inductor', resistance, avgCutoffHz, inductance, validMeasurements, cutoffFrequencies);
+}
+
+function displayResults(componentType, resistance, avgCutoffHz, componentValue, validMeasurements, cutoffFrequencies) {
+  const resultsDiv = document.getElementById('calculationResults');
+  const resultsContent = document.getElementById('resultsContent');
+  
+  // Formatear valor del componente
+  let formattedValue, unit;
+  if (componentType === 'Capacitor') {
+    if (componentValue >= 1e-3) {
+      formattedValue = (componentValue * 1e3).toFixed(3);
+      unit = 'mF';
+    } else if (componentValue >= 1e-6) {
+      formattedValue = (componentValue * 1e6).toFixed(3);
+      unit = 'µF';
+    } else if (componentValue >= 1e-9) {
+      formattedValue = (componentValue * 1e9).toFixed(3);
+      unit = 'nF';
+    } else {
+      formattedValue = (componentValue * 1e12).toFixed(3);
+      unit = 'pF';
+    }
+  } else {
+    if (componentValue >= 1) {
+      formattedValue = componentValue.toFixed(3);
+      unit = 'H';
+    } else if (componentValue >= 1e-3) {
+      formattedValue = (componentValue * 1e3).toFixed(3);
+      unit = 'mH';
+    } else {
+      formattedValue = (componentValue * 1e6).toFixed(3);
+      unit = 'µH';
+    }
+  }
+  
+  // Crear tabla con detalles
+  let tableHTML = '<table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">';
+  tableHTML += '<thead><tr style="background: #e8f0f8; border-bottom: 2px solid #2c5aa0;">';
+  tableHTML += '<th style="padding: 0.8rem; text-align: left; color: #1a2332;">Medición</th>';
+  tableHTML += '<th style="padding: 0.8rem; text-align: right; color: #1a2332;">fc (Hz)</th>';
+  tableHTML += '</tr></thead><tbody>';
+  
+  validMeasurements.forEach((m, i) => {
+    tableHTML += '<tr style="border-bottom: 1px solid #e1e8ed;">';
+    tableHTML += `<td style="padding: 0.6rem; color: ${m.color}; font-weight: 500;">${m.label}</td>`;
+    tableHTML += `<td style="padding: 0.6rem; text-align: right; color: #5a6c7d;">${cutoffFrequencies[i].toFixed(2)}</td>`;
+    tableHTML += '</tr>';
+  });
+  
+  tableHTML += '</tbody></table>';
+  
+  resultsContent.innerHTML = `
+    <div class="info-grid">
+      <div class="info-item">
+        <h4>Resistencia Ingresada</h4>
+        <p style="font-size: 1.2rem; color: #2c5aa0; font-weight: 600;">${resistance.toFixed(2)} Ω</p>
+      </div>
+      <div class="info-item">
+        <h4>Frecuencia de Corte Promedio</h4>
+        <p style="font-size: 1rem; color: #5a6c7d; margin: 0;">
+          <strong>${avgCutoffHz.toFixed(2)}</strong> Hz
+        </p>
+      </div>
+      <div class="info-item" style="background: #e8f0f8; border-left-color: #2c5aa0; border-left-width: 5px;">
+        <h4>Valor Calculado del ${componentType}</h4>
+        <p style="font-size: 1.5rem; color: #2c5aa0; font-weight: 700; margin: 0;">
+          ${formattedValue} ${unit}
+        </p>
+        <p style="font-size: 0.85rem; color: #5a6c7d; margin-top: 0.3rem;">
+          (${componentValue.toExponential(3)} ${componentType === 'Capacitor' ? 'F' : 'H'})
+        </p>
+      </div>
+    </div>
+    
+    <div style="margin-top: 1.5rem;">
+      <h4 style="color: #1a2332; margin-bottom: 0.5rem;">Detalle por Medición (${validMeasurements.length} mediciones válidas)</h4>
+      ${tableHTML}
+    </div>
+    
+    <div style="margin-top: 1rem; padding: 0.8rem; background: #fff3cd; border-radius: 4px; border-left: 4px solid #ffc107;">
+      <p style="margin: 0; color: #856404; font-size: 0.9rem;">
+        <strong>Nota:</strong> El cálculo se basa en la frecuencia donde la ganancia cae -3dB respecto al máximo. 
+        Los resultados son más precisos cuando hay múltiples mediciones coherentes.
+      </p>
+    </div>
+  `;
+  
+  resultsDiv.style.display = 'block';
+  
+  // Scroll suave hacia resultados
+  resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  
+  log(`Cálculo realizado: ${componentType} = ${formattedValue} ${unit}`);
+}
+
 // Función mejorada para actualizar escalas del gráfico
 function updateChartScales() {
   const ch1Min = Math.max(0, ch1Offset - ch1Scale);
@@ -1504,17 +1749,15 @@ function downloadBodeCSV(type) {
     csv = 'Medición,Frecuencia [Hz],Magnitud [dB]\n';
     measurements.forEach(m => {
       m.magnitude.frequencies.forEach((f, i) => {
-        const freqHz = f * 2 * Math.PI;
-        csv += `${m.label},${freqHz},${m.magnitude.values[i]}\n`;
+        csv += `${m.label},${f},${m.magnitude.values[i]}\n`;
       });
     });
   } else {
     csv = 'Medición,Frecuencia [Hz],Fase [°]\n';
     measurements.forEach(m => {
       m.phase.frequencies.forEach((f, i) => {
-        const freqHz = f * 2 * Math.PI;
         const phaseDeg = m.phase.values[i] * 180 / Math.PI;
-        csv += `${m.label},${freqHz},${phaseDeg}\n`;
+        csv += `${m.label},${f},${phaseDeg}\n`;
       });
     });
   }
@@ -1620,6 +1863,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.getElementById('clearLastNyquistBtn').addEventListener('click', function() {
     clearLastMeasurement();
+  });
+
+  // Botones de cálculo RC/RL
+  document.getElementById('calculateCapacitor').addEventListener('click', function() {
+    calculateCapacitor();
+  });
+
+  document.getElementById('calculateInductor').addEventListener('click', function() {
+    calculateInductor();
   });
 
   // Botón conectar
